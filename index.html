@@ -3,229 +3,753 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>はいべん記録アプリ - ぽんぽんダイアリー</title>
-  <meta name="theme-color" content="#FF6B9D">
-  <meta name="description" content="かわいい排便記録アプリ">
+  <title>うんちダイアリー - かわいい記録アプリ</title>
+  <meta name="theme-color" content="#6366F1">
+  <meta name="description" content="かわいいうんち記録アプリだよ〜♪">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    body {
-      background: #FFF5F9;
-      font-family: 'Kosugi Maru', sans-serif;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .nav-btn.active {
-      background-color: #FF6B9D;
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      min-height: 100vh;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
       color: white;
     }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .nav-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 12px;
+      margin-bottom: 32px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      padding: 16px 12px;
+      border-radius: 16px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      color: #64748b;
+    }
+
+    .nav-btn.active {
+      background: #6366f1;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+    }
+
+    .nav-btn i {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
     .section {
       display: none;
     }
+
     .section.active {
       display: block;
+      animation: fadeIn 0.5s ease-out;
     }
-    .card-choice {
-      border: 2px solid #e9d7f1;
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 32px;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      color: #374151;
+    }
+
+    .datetime-input {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #e5e7eb;
       border-radius: 16px;
-      padding: 16px;
-      text-align: center;
-      font-size: 1.2rem;
-      transition: 0.2s;
-      background: white;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    }
-    .card-choice:hover {
-      transform: translateY(-3px);
-      border-color: #FF6B9D;
-      box-shadow: 0 8px 20px rgba(255, 107, 157, 0.2);
-    }
-    .form-control, .form-select {
-      border-radius: 12px;
-      border: 2px solid #FFB6C1;
-      padding: 12px 16px;
       font-size: 1rem;
-      box-shadow: none;
-    }
-    .chart-card {
+      transition: all 0.3s ease;
       background: white;
-      padding: 1.5rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      margin-bottom: 2rem;
+    }
+
+    .datetime-input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+    }
+
+    .card-choice {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 20px;
+      padding: 20px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-choice:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      border-color: #6366f1;
+    }
+
+    .card-choice.selected {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-color: #6366f1;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+    }
+
+    .card-choice .emoji {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .card-choice .text {
+      font-weight: 600;
+      font-size: 0.9rem;
+      line-height: 1.2;
+    }
+
+    .memo-input {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 16px;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .memo-input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 18px;
+      border-radius: 20px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 20px -5px rgba(99, 102, 241, 0.4);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .history-container, .stats-container, .settings-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .record-item {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid #6366f1;
+    }
+
+    .record-date {
+      font-weight: 700;
+      color: #6366f1;
+      margin-bottom: 8px;
+    }
+
+    .record-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    .record-detail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .export-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+
+    .export-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 16px;
+      }
+      
+      .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .nav-btn {
+        padding: 12px 8px;
+        font-size: 0.8rem;
+      }
+      
+      .form-container, .history-container, .stats-container, .settings-container {
+        padding: 24px;
+      }
     }
   </style>
 </head>
-<body class="container py-4">
-  <header class="mb-4">
-    <h1 class="text-center text-danger fw-bold">🍑 ぽんぽんダイアリー</h1>
-    <p class="text-center text-muted">うんちタイムを記録して、毎日すっきり！</p>
-  </header>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>💩 うんちダイアリー</h1>
+      <p>きょうも元気にうんち記録だよ〜♪ (´∀｀)♡</p>
+    </header>
 
-  <div class="btn-group d-flex mb-4" role="group">
-    <button class="btn btn-outline-secondary nav-btn active" onclick="showSection('record')">📅 きろく</button>
-    <button class="btn btn-outline-secondary nav-btn" onclick="showSection('history')">📓 りれき</button>
-    <button class="btn btn-outline-secondary nav-btn" onclick="showSection('stats')">📊 とうけい</button>
-    <button class="btn btn-outline-secondary nav-btn" onclick="showSection('settings')">⚙️ せってい</button>
+    <div class="nav-container">
+      <div class="nav-tabs">
+        <button class="nav-btn active" onclick="showSection('record')">
+          <i class="fas fa-plus-circle"></i>
+          きろく♪
+        </button>
+        <button class="nav-btn" onclick="showSection('history')">
+          <i class="fas fa-history"></i>
+          れきし〜
+        </button>
+        <button class="nav-btn" onclick="showSection('stats')">
+          <i class="fas fa-chart-bar"></i>
+          とうけい☆
+        </button>
+        <button class="nav-btn" onclick="showSection('settings')">
+          <i class="fas fa-cog"></i>
+          せってい
+        </button>
+      </div>
+    </div>
+
+    <main>
+      <section id="record" class="section active">
+        <div class="form-container">
+          <form id="poopForm">
+            <div class="form-group">
+              <label class="form-label">📅 ひづけと時間だよ〜 (´∀｀)</label>
+              <input type="datetime-local" id="time" class="datetime-input" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">💩 うんちちゃんの調子はどう？ ♪(´▽｀)</label>
+              <div class="card-grid" data-field="condition">
+                <div class="card-choice" data-value="げんき">
+                  <span class="emoji">😊</span>
+                  <span class="text">げんき♪</span>
+                </div>
+                <div class="card-choice" data-value="やわらか">
+                  <span class="emoji">😐</span>
+                  <span class="text">やわらか〜</span>
+                </div>
+                <div class="card-choice" data-value="みずっぽい">
+                  <span class="emoji">😵</span>
+                  <span class="text">みずっぽい(´･ω･`)</span>
+                </div>
+                <div class="card-choice" data-value="でない">
+                  <span class="emoji">😣</span>
+                  <span class="text">でない〜(;_;)</span>
+                </div>
+                <div class="card-choice" data-value="あかい">
+                  <span class="emoji">🚨</span>
+                  <span class="text">あかいよ！</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">🎨 なにいろかな？ ٩(◕‿◕)۶</label>
+              <div class="card-grid" data-field="color">
+                <div class="card-choice" data-value="ちゃいろ">
+                  <span class="emoji">🤎</span>
+                  <span class="text">ちゃいろ♪</span>
+                </div>
+                <div class="card-choice" data-value="きいろ">
+                  <span class="emoji">🟡</span>
+                  <span class="text">きいろ〜</span>
+                </div>
+                <div class="card-choice" data-value="くろ">
+                  <span class="emoji">⚫</span>
+                  <span class="text">くろっぽい</span>
+                </div>
+                <div class="card-choice" data-value="あか">
+                  <span class="emoji">🔴</span>
+                  <span class="text">あかっぽい(´･ω･`)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">🍌 どんなかたち？ ブリストルスケール ♡</label>
+              <div class="card-grid" data-field="shape">
+                <div class="card-choice" data-value="ソーセージ">
+                  <span class="emoji">🌭</span>
+                  <span class="text">ソーセージ♪</span>
+                </div>
+                <div class="card-choice" data-value="バナナ">
+                  <span class="emoji">🍌</span>
+                  <span class="text">バナナ〜</span>
+                </div>
+                <div class="card-choice" data-value="つぶつぶ">
+                  <span class="emoji">🫘</span>
+                  <span class="text">つぶつぶ</span>
+                </div>
+                <div class="card-choice" data-value="どろどろ">
+                  <span class="emoji">🍯</span>
+                  <span class="text">どろどろ〜</span>
+                </div>
+                <div class="card-choice" data-value="みずみず">
+                  <span class="emoji">💧</span>
+                  <span class="text">みずみず(´･ω･`)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">👃 においはどうかな？ (๑＞◡＜๑)</label>
+              <div class="card-grid" data-field="smell">
+                <div class="card-choice" data-value="におわない">
+                  <span class="emoji">🌸</span>
+                  <span class="text">におわない♪</span>
+                </div>
+                <div class="card-choice" data-value="ちょっと">
+                  <span class="emoji">😌</span>
+                  <span class="text">ちょっと〜</span>
+                </div>
+                <div class="card-choice" data-value="ふつう">
+                  <span class="emoji">😐</span>
+                  <span class="text">ふつう</span>
+                </div>
+                <div class="card-choice" data-value="くさい">
+                  <span class="emoji">🤢</span>
+                  <span class="text">くさい〜(>_<)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">⚡ どのくらい急いだ？ ε=ε=ε=┌(;*´Д`)ﾉ</label>
+              <div class="card-grid" data-field="urgency">
+                <div class="card-choice" data-value="のんびり">
+                  <span class="emoji">🚶</span>
+                  <span class="text">のんびり♪</span>
+                </div>
+                <div class="card-choice" data-value="ふつう">
+                  <span class="emoji">🏃</span>
+                  <span class="text">ふつう〜</span>
+                </div>
+                <div class="card-choice" data-value="いそいだ">
+                  <span class="emoji">💨</span>
+                  <span class="text">いそいだ！</span>
+                </div>
+                <div class="card-choice" data-value="ちょうきゅう">
+                  <span class="emoji">🚨</span>
+                  <span class="text">ちょうきゅう(;´Д`)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">😊 きもちはどうだった？ ♡(˃͈ દ ˂͈ ༶ )</label>
+              <div class="card-grid" data-field="feel">
+                <div class="card-choice" data-value="すっきり">
+                  <span class="emoji">🤩</span>
+                  <span class="text">すっきり♪</span>
+                </div>
+                <div class="card-choice" data-value="まあまあ">
+                  <span class="emoji">😊</span>
+                  <span class="text">まあまあ〜</span>
+                </div>
+                <div class="card-choice" data-value="ふつう">
+                  <span class="emoji">😐</span>
+                  <span class="text">ふつう</span>
+                </div>
+                <div class="card-choice" data-value="のこってる">
+                  <span class="emoji">😒</span>
+                  <span class="text">のこってる感じ</span>
+                </div>
+                <div class="card-choice" data-value="つらい">
+                  <span class="emoji">😫</span>
+                  <span class="text">つらい〜(´；ω；`)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">📝 きょうのメモ〜 ♪(*´∀｀)ﾉ</label>
+              <textarea id="memo" class="memo-input" placeholder="きょう食べたもの、きもち、ストレスとか... なんでも書いちゃお〜 ♡(˃͈ દ ˂͈ ༶ )"></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">
+              ✨ きろくする〜♪ ヾ(＾∇＾)
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <section id="history" class="section">
+        <div class="history-container">
+          <h2 style="margin-bottom: 24px; color: #374151; font-weight: 700;">📚 きろくのれきし〜 ♪(´▽｀)</h2>
+          <div id="recordList"></div>
+          <button onclick="exportCSV()" class="export-btn">
+            📊 CSVでだしゅつ〜 ٩(◕‿◕)۶
+          </button>
+        </div>
+      </section>
+
+      <section id="stats" class="section">
+        <div class="stats-container">
+          <h2 style="margin-bottom: 24px; color: #374151; font-weight: 700;">📈 とうけいグラフ♪ ☆(ゝω・)vキャピ</h2>
+          <div class="chart-container">
+            <canvas id="barChart" height="200"></canvas>
+          </div>
+          <div class="chart-container">
+            <canvas id="pieChart" height="200"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section id="settings" class="section">
+        <div class="settings-container">
+          <h2 style="margin-bottom: 24px; color: #374151; font-weight: 700;">⚙️ せってい画面だよ〜 (´∀｀)♡</h2>
+          <div class="form-group">
+            <label class="form-label">🔔 おしらせ時間を決めよう♪ ♡(˃͈ દ ˂͈ ༶ )</label>
+            <input type="time" id="reminderTime" class="datetime-input">
+          </div>
+          <button onclick="saveReminder()" class="submit-btn">
+            💾 せーぶする〜 ヾ(＾∇＾)
+          </button>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <main>
-    <section id="record" class="section active">
-      <form id="poopForm" class="mb-4">
-        <div class="mb-3">
-          <label for="time" class="form-label">記録時間</label>
-          <input type="datetime-local" id="time" class="form-control" required>
-        </div>
-        <div class="mb-3">
-          <label for="condition" class="form-label">状態</label>
-          <select id="condition" class="form-select">
-            <option>正常</option>
-            <option>軟便</option>
-            <option>下痢</option>
-            <option>便秘</option>
-            <option>血便</option>
-            <option>出なかった</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label for="memo" class="form-label">メモ</label>
-          <input type="text" id="memo" class="form-control" placeholder="メモ（任意）">
-        </div>
-        <button type="submit" class="btn btn-danger w-100">🌟 記録する</button>
-      </form>
-    </section>
-
-    <section id="history" class="section">
-      <ul id="recordList" class="list-group mb-3"></ul>
-      <button onclick="exportCSV()" class="btn btn-warning w-100">📂 CSVエクスポート</button>
-    </section>
-
-    <section id="stats" class="section">
-      <div class="chart-card">
-        <canvas id="barChart" height="200"></canvas>
-      </div>
-      <div class="chart-card">
-        <canvas id="pieChart" height="200"></canvas>
-      </div>
-    </section>
-
-    <section id="settings" class="section">
-      <div class="mb-3">
-        <label for="reminderTime" class="form-label">🔔 リマインダー時間</label>
-        <input type="time" id="reminderTime" class="form-control">
-      </div>
-      <button onclick="saveReminder()" class="btn btn-primary w-100">セーブ</button>
-    </section>
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <script>
-    const navBtns = document.querySelectorAll(".nav-btn");
-    function showSection(id) {
-      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
-      navBtns.forEach(btn => btn.classList.remove("active"));
-      event.target.classList.add("active");
-    }
+    // 全局变量
+    let records = JSON.parse(localStorage.getItem('poopRecords') || '[]');
 
-    const form = document.getElementById("poopForm");
-    const list = document.getElementById("recordList");
-
-    form.onsubmit = e => {
-      e.preventDefault();
-      const time = document.getElementById("time").value;
-      const condition = document.getElementById("condition").value;
-      const memo = document.getElementById("memo").value;
-      const record = { time, condition, memo };
-      const records = JSON.parse(localStorage.getItem("poopRecords") || "[]");
-      records.push(record);
-      localStorage.setItem("poopRecords", JSON.stringify(records));
-      alert("記録しました！");
-      form.reset();
-      renderHistory();
-      updateCharts();
-    }
-
-    function renderHistory() {
-      const records = JSON.parse(localStorage.getItem("poopRecords") || "[]");
-      list.innerHTML = records.map(r => `<li class='list-group-item'>${r.time} - ${r.condition} - ${r.memo}</li>`).join("");
-    }
-
-    function exportCSV() {
-      const records = JSON.parse(localStorage.getItem("poopRecords") || "[]");
-      const csv = ["時間,状態,メモ"].concat(records.map(r => `${r.time},${r.condition},${r.memo}`)).join("\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "ぽんぽん記録.csv";
-      link.click();
-    }
-
-    function updateCharts() {
-      const records = JSON.parse(localStorage.getItem("poopRecords") || "[]");
-      const countByCondition = {};
-      records.forEach(r => {
-        countByCondition[r.condition] = (countByCondition[r.condition] || 0) + 1;
+    // 导航功能
+    function showSection(sectionId) {
+      // 隐藏所有section
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
       });
-      const labels = Object.keys(countByCondition);
-      const data = Object.values(countByCondition);
-
-      new Chart("barChart", {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label: "状態別の回数",
-            data,
-            backgroundColor: "#FF6B9D"
-          }]
-        },
-        options: { responsive: true }
+      
+      // 显示目标section
+      document.getElementById(sectionId).classList.add('active');
+      
+      // 更新导航按钮状态
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
       });
+      event.target.classList.add('active');
 
-      new Chart("pieChart", {
-        type: "pie",
-        data: {
-          labels,
-          datasets: [{
-            label: "割合",
-            data,
-            backgroundColor: ["#FF6B9D", "#FFD93D", "#C77DFF", "#4ADE80", "#F87171", "#FDE047"]
-          }]
-        },
-        options: { responsive: true }
-      });
-    }
+      // 如果是统计页面，渲染图表
+      if (sectionId === 'stats') {
+        renderCharts();
+      }
 
-    function saveReminder() {
-      const time = document.getElementById("reminderTime").value;
-      localStorage.setItem("ponpon-reminder-time", time);
-      Notification.requestPermission().then(perm => {
-        if (perm === "granted") {
-          alert(`每日リマインドするね！(${time})`);
-        }
-      });
-    }
-
-    function setupReminder() {
-      const storedTime = localStorage.getItem("ponpon-reminder-time");
-      if (storedTime) {
-        document.getElementById("reminderTime").value = storedTime;
-        setInterval(() => {
-          const now = new Date();
-          const nowStr = now.toTimeString().slice(0,5);
-          if (nowStr === storedTime) {
-            new Notification("うんちタイムだよ～💩");
-          }
-        }, 60000);
+      // 如果是历史页面，渲染记录
+      if (sectionId === 'history') {
+        renderHistory();
       }
     }
 
-    renderHistory();
-    updateCharts();
-    setupReminder();
+    // 卡片选择功能
+    document.addEventListener('DOMContentLoaded', function() {
+      // 为所有卡片添加点击事件
+      document.querySelectorAll('.card-choice').forEach(card => {
+        card.addEventListener('click', function() {
+          // 获取所属的字段组
+          const fieldGroup = this.closest('[data-field]');
+          if (fieldGroup) {
+            // 清除同组其他卡片的选中状态
+            fieldGroup.querySelectorAll('.card-choice').forEach(c => {
+              c.classList.remove('selected');
+            });
+            // 选中当前卡片
+            this.classList.add('selected');
+          }
+        });
+      });
+
+      // 设置默认时间为当前时间
+      const now = new Date();
+      const timeInput = document.getElementById('time');
+      const tzOffset = now.getTimezoneOffset() * 60000;
+      const localTime = new Date(now.getTime() - tzOffset);
+      timeInput.value = localTime.toISOString().slice(0, 16);
+
+      // 表单提交处理
+      document.getElementById('poopForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveRecord();
+      });
+
+      // 初始化页面
+      renderHistory();
+    });
+
+    // 保存记录
+    function saveRecord() {
+      const time = document.getElementById('time').value;
+      const memo = document.getElementById('memo').value;
+
+      // 收集所有选择的值
+      const formData = { time, memo };
+      
+      document.querySelectorAll('[data-field]').forEach(fieldGroup => {
+        const fieldName = fieldGroup.getAttribute('data-field');
+        const selectedCard = fieldGroup.querySelector('.card-choice.selected');
+        formData[fieldName] = selectedCard ? selectedCard.getAttribute('data-value') : '';
+      });
+
+      // 验证必填字段
+      if (!time) {
+        alert('ひづけと時間をえらんでね〜 (´･ω･`)');
+        return;
+      }
+
+      // 保存到localStorage
+      const record = {
+        id: Date.now(),
+        ...formData,
+        createdAt: new Date().toISOString()
+      };
+
+      records.unshift(record);
+      localStorage.setItem('poopRecords', JSON.stringify(records));
+
+      // 显示成功消息
+      alert('きろくできたよ〜♪ おつかれさま！ ヾ(＾∇＾) 🎉');
+
+      // 重置表单
+      resetForm();
+    }
+
+    // 重置表单
+    function resetForm() {
+      document.querySelectorAll('.card-choice.selected').forEach(card => {
+        card.classList.remove('selected');
+      });
+      document.getElementById('memo').value = '';
+      
+      // 重置时间为当前时间
+      const now = new Date();
+      const tzOffset = now.getTimezoneOffset() * 60000;
+      const localTime = new Date(now.getTime() - tzOffset);
+      document.getElementById('time').value = localTime.toISOString().slice(0, 16);
+    }
+
+    // 渲染历史记录
+    function renderHistory() {
+      const recordList = document.getElementById('recordList');
+      
+      if (records.length === 0) {
+        recordList.innerHTML = '<p style="text-align: center; color: #6b7280; font-style: italic;">まだきろくがないよ〜！ はじめてのきろくをつくってみよう♪ (´∀｀)ﾉ</p>';
+        return;
+      }
+
+      recordList.innerHTML = records.map(record => `
+        <div class="record-item">
+          <div class="record-date">${formatDate(record.time)}</div>
+          <div class="record-details">
+            <div class="record-detail">
+              <span>💩</span>
+              <span>${record.condition || '-'}</span>
+            </div>
+            <div class="record-detail">
+              <span>🎨</span>
+              <span>${record.color || '-'}</span>
+            </div>
+            <div class="record-detail">
+              <span>🍌</span>
+              <span>${record.shape || '-'}</span>
+            </div>
+            <div class="record-detail">
+              <span>😊</span>
+              <span>${record.feel || '-'}</span>
+            </div>
+          </div>
+          ${record.memo ? `<div style="margin-top: 12px; color: #6b7280; font-style: italic;">📝 きょうのメモ: ${record.memo} ♪</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    // 格式化日期
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // 导出CSV
+    function exportCSV() {
+      if (records.length === 0) {
+        alert('まだデータがないよ〜 (´･ω･`) きろくしてからまた来てね♪');
+        return;
+      }
+
+      const headers = ['ひづけ時間', 'うんちの調子', 'いろ', 'かたち', 'におい', 'きゅうども', 'きもち', 'メモ'];
+      const csvContent = [
+        headers.join(','),
+        ...records.map(record => [
+          record.time,
+          record.condition || '',
+          record.color || '',
+          record.shape || '',
+          record.smell || '',
+          record.urgency || '',
+          record.feel || '',
+          `"${(record.memo || '').replace(/"/g, '""')}"`
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `うんちダイアリー_${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+    }
+
+    // 渲染图表 (简化版本)
+    function renderCharts() {
+      // 这里可以添加Chart.js图表渲染逻辑
+      console.log('グラフをかいてるよ〜♪', records);
+    }
+
+    // 保存提醒设置
+    function saveReminder() {
+      const reminderTime = document.getElementById('reminderTime').value;
+      if (reminderTime) {
+        localStorage.setItem('reminderTime', reminderTime);
+        alert('おしらせ時間をセーブしたよ〜♪ ヾ(＾∇＾)');
+      }
+    }
+
+    // 加载设置
+    document.addEventListener('DOMContentLoaded', function() {
+      const savedReminderTime = localStorage.getItem('reminderTime');
+      if (savedReminderTime) {
+        document.getElementById('reminderTime').value = savedReminderTime;
+      }
+    });
   </script>
 </body>
 </html>
