@@ -1,17 +1,836 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>ぽんぽんダイアリー</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#FF6B9D">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="ぽんぽんダイアリー">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ぽんぽんダイアリー</title>
+    <meta name="description" content="かわいい排便記録アプリ">
+    <meta name="theme-color" content="#FF6B9D">
+    
+    <link rel="manifest" href="data:application/json,{
+        'name': 'ぽんぽんダイアリー',
+        'short_name': 'ぽんぽん',
+        'description': 'かわいい排便記録アプリ',
+        'start_url': '/',
+        'display': 'standalone',
+        'theme_color': '#FF6B9D',
+        'background_color': '#FFF0F5',
+        'icons': [
+            {
+                'src': 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"%23FF6B9D\"><path d=\"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z\"/></svg>',
+                'sizes': '192x192',
+                'type': 'image/svg+xml'
+            }
+        ]
+    }">
+    
+    <style>
+        :root {
+            --primary: #FF6B9D;
+            --primary-dark: #E91E63;
+            --secondary: #C77DFF;
+            --accent: #FFD93D;
+            --bg-primary: #FFF0F5;
+            --bg-secondary: #F8F9FF;
+            --text-primary: #2D1B69;
+            --text-secondary: #8B5A9F;
+            --border: #E8D5FF;
+            --success: #4ADE80;
+            --warning: #FDE047;
+            --danger: #F87171;
+            
+            --font-cute: "Comic Sans MS", "Apple Color Emoji", "Segoe UI Emoji", cursive;
+            --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        [data-theme="ocean"] {
+            --primary: #06B6D4;
+            --primary-dark: #0891B2;
+            --secondary: #3B82F6;
+            --accent: #F0F9FF;
+            --bg-primary: #F0F9FF;
+            --bg-secondary: #E0F7FA;
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --border: #B0E7FF;
+        }
+
+        [data-theme="forest"] {
+            --primary: #10B981;
+            --primary-dark: #059669;
+            --secondary: #34D399;
+            --accent: #FDE68A;
+            --bg-primary: #F0FDF4;
+            --bg-secondary: #ECFDF5;
+            --text-primary: #064E3B;
+            --text-secondary: #047857;
+            --border: #BBF7D0;
+        }
+
+        [data-theme="sunset"] {
+            --primary: #F97316;
+            --primary-dark: #EA580C;
+            --secondary: #FB923C;
+            --accent: #FEF3C7;
+            --bg-primary: #FFF7ED;
+            --bg-secondary: #FFEDD5;
+            --text-primary: #9A3412;
+            --text-secondary: #C2410C;
+            --border: #FED7AA;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 107, 157, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(199, 125, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            min-height: 100vh;
+            box-shadow: 0 0 40px rgba(0,0,0,0.1);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '✨';
+            position: absolute;
+            font-size: 20px;
+            animation: float 3s ease-in-out infinite;
+            top: 20px;
+            left: 30px;
+        }
+
+        .header::after {
+            content: '🌟';
+            position: absolute;
+            font-size: 16px;
+            animation: float 3s ease-in-out infinite 1.5s;
+            top: 30px;
+            right: 40px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(10deg); }
+        }
+
+        .header h1 {
+            font-family: var(--font-cute);
+            font-size: 1.8rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 5px;
+        }
+
+        .header-subtitle {
+            font-family: var(--font-cute);
+            font-size: 0.9rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .theme-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        .theme-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+
+        .nav {
+            display: flex;
+            background: rgba(255,255,255,0.9);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 18px 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-cute);
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        .nav-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: white;
+        }
+
+        .nav-btn:hover:not(.active) {
+            background: var(--bg-secondary);
+            transform: translateY(-2px);
+        }
+
+        .section {
+            display: none;
+            padding: 25px 20px;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-family: var(--font-cute);
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px 16px;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.8);
+            font-family: var(--font-main);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+        }
+
+        .radio-item {
+            position: relative;
+        }
+
+        .radio-item input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .radio-item label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 18px 12px;
+            background: rgba(255,255,255,0.8);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: var(--font-cute);
+            font-size: 12px;
+            min-height: 90px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        .radio-item input:checked + label {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: var(--primary);
+            transform: scale(1.05) translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 107, 157, 0.4);
+        }
+
+        .radio-item label:hover:not(:has(input:checked)) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .option-icon {
+            font-size: 30px;
+            margin-bottom: 8px;
+            line-height: 1;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .option-text {
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .color-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            border: 3px solid white;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 25px;
+            font-family: var(--font-cute);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 25px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 107, 157, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .settings-section {
+            background: rgba(255,255,255,0.9);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .settings-title {
+            font-family: var(--font-cute);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reminder-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #ddd;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active::after {
+            left: 33px;
+        }
+
+        .reminder-time {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .reminder-time.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .record-item {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .record-item::before {
+            content: '💫';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .record-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+        .record-date {
+            font-family: var(--font-cute);
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .advice-card {
+            background: linear-gradient(135deg, var(--accent), #FFF8DC);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .advice-card::before {
+            content: '💡';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .advice-title {
+            font-family: var(--font-cute);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .advice-text {
+            font-family: var(--font-cute);
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .chart-container {
+            background: rgba(255,255,255,0.9);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-title {
+            font-family: var(--font-cute);
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(255, 107, 157, 0.2);
+        }
+
+        .stat-number {
+            font-family: var(--font-cute);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-family: var(--font-cute);
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, var(--success), #22C55E);
+            color: white;
+            padding: 18px 20px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            animation: bounceIn 0.6s ease;
+            font-family: var(--font-cute);
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.3);
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .cute-mascot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 40px;
+            animation: bounce 2s infinite;
+            z-index: 1000;
+            cursor: pointer;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-family: var(--font-cute);
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideInRight 0.5s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+
+        .empty-state-text {
+            font-family: var(--font-cute);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 480px) {
+            .container { max-width: 100%; }
+            .radio-group { grid-template-columns: repeat(2, 1fr); }
+            .section { padding: 20px 15px; }
+            .nav-btn { padding: 15px 8px; font-size: 13px; }
+        }
+    </style>
 </head>
-<body>
-  <h1>🍑 ぽんぽんダイアリー 完整版</h1>
-  <p>こちらは記録、統計、通知、エクスポート機能をすべて含むバージョンです。</p>
-</body>
-</html>
+<body data-theme="cute">
+    <div class="container">
+        <div class="header">
+            <div class="theme-switcher">
+                <button class="theme-btn" onclick="switchTheme()">🎨</button>
+            </div>
+            <h1>🍑 ぽんぽんダイアリー</h1>
+            <div class="header-subtitle">今日もすっきり〜♪</div>
+        </div>
+
+        <div class="nav">
+            <button class="nav-btn active" onclick="showSection('record')">📝 きろく</button>
+            <button class="nav-btn" onclick="showSection('history')">📚 りれき</button>
+            <button class="nav-btn" onclick="showSection('stats')">📊 とうけい</button>
+            <button class="nav-btn" onclick="showSection('settings')">⚙️ せってい</button>
+        </div>
+
+        <div id="record" class="section active">
+            <form id="recordForm">
+                <div class="form-group">
+                    <label for="datetime">🕐 いつですか？</label>
+                    <input type="datetime-local" id="datetime" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label>🎯 どんなかんじ？</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="normal" name="condition" value="正常" required>
+                            <label for="normal">
+                                <div class="option-icon">😊</div>
+                                <div class="option-text">げんき！</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="soft" name="condition" value="軟便">
+                            <label for="soft">
+                                <div class="option-icon">😐</div>
+                                <div class="option-text">やわらか</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="diarrhea" name="condition" value="下痢">
+                            <label for="diarrhea">
+                                <div class="option-icon">😰</div>
+                                <div class="option-text">みずみず</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="constipation" name="condition" value="便秘">
+                            <label for="constipation">
+                                <div class="option-icon">😣</div>
+                                <div class="option-text">でない…</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="blood" name="condition" value="血便">
+                            <label for="blood">
+                                <div class="option-icon">🚨</div>
+                                <div class="option-text">あか！</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="none" name="condition" value="出なかった">
+                            <label for="none">
+                                <div class="option-icon">❌</div>
+                                <div class="option-text">がんばった</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>🌈 なにいろ？</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="brown" name="color" value="茶色">
+                            <label for="brown">
+                                <div class="color-dot" style="background-color: #8b4513;"></div>
+                                <div class="option-text">ちゃいろ</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="yellow" name="color" value="黄色">
+                            <label for="yellow">
+                                <div class="color-dot" style="background-color: #ffd700;"></div>
+                                <div class="option-text">きいろ</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="black" name="color" value="黒">
+                            <label for="black">
+                                <div class="color-dot" style="background-color: #2c2c2c;"></div>
+                                <div class="option-text">くろ</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="red" name="color" value="赤">
+                            <label for="red">
+                                <div class="color-dot" style="background-color: #dc2626;"></div>
+                                <div class="option-text">あか</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="white" name="color" value="白っぽい">
+                            <label for="white">
+                                <div class="color-dot" style="background-color: #f5f5f5; border: 2px solid #ccc;"></div>
+                                <div class="option-text">しろ</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="other-color" name="color" value="その他">
+                            <label for="other-color">
+                                <div class="option-icon">🌈</div>
+                                <div class="option-text">ほかの</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>🥖 かたちは？</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="banana" name="shape" value="バナナ状">
+                            <label for="banana">
+                                <div class="option-icon">🍌</div>
+                                <div class="option-text">バナナ</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="pellet" name="shape" value="粒状">
+                            <label for="pellet">
+                                <div class="option-icon">🫐</div>
+                                <div class="option-text">つぶつぶ</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="liquid" name="shape" value="液体">
+                            <label for="liquid">
+                                <div class="option-icon">💧</div>
+                                <div class="option-text">みずみず</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="cracked" name="shape" value="ひび割れソーセージ状">
+                            <label for="cracked">
+                                <div class="option-icon">🌭</div>
+                                <div class="option-text">ソーセージ</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>👃 においは？</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="no-smell" name="smell" value="なし">
+                            <label for="no-smell">
+                                <div class="option-icon">😌</div>
+                                <div class="option-text">においなし</div>
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="
