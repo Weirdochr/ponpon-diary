@@ -2,107 +2,174 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ぽんぽんダイアリー - 💩記録アプリ</title>
-  <meta name="theme-color" content="#FF6B9D">
-  <meta name="description" content="排便記録・分析・通知つきのかわいいWebアプリ">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ぽんぽんダイアリー</title>
+  <!-- 这里假设你已有 Bootstrap 或类似框架的引入，如需可自行添加 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <style>
+    /* 基础重置 */
+    * { box-sizing: border-box; }
+    body { background: #fff0f5; font-family: 'Kosugi Maru', sans-serif; margin: 0; padding: 0; }
+    .container { padding-top: 1rem; }
+
+    /* 按钮统一风格 */
+    .btn { border-radius: 1rem !important; transition: transform 0.2s ease, box-shadow 0.2s ease !important; }
+    .btn:hover { transform: translateY(-2px) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; }
+    .nav-btn { margin: 0 0.25rem; }
+    .nav-btn.active { background-color: #FF6B9D !important; color: #fff !important; }
+
+    /* 卡片式选择控件 */
+    .form-select { display: none; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px,1fr)); gap: 0.5rem; margin-bottom: 1rem; }
+    .card-choice {
+      background: #fff;
+      border: 2px solid #e5e7eb;
+      border-radius: 1rem;
+      padding: 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-choice .emoji { font-size: 1.5rem; display: block; margin-bottom: 0.25rem; }
+    .card-choice .text { font-size: 0.75rem; }
+    .card-choice:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+    .card-choice.selected {
+      background: linear-gradient(135deg, #FF6B9D, #8b5cf6);
+      border-color: #FF6B9D;
+      color: #fff;
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    /* 森林动画 */
+    #forestDisplay {
+      font-size: 2.5rem;
+      line-height: 1.4;
+      animation: forestGrow 0.8s ease-in-out, forestBounce 2s infinite 1s;
+    }
+    @keyframes forestGrow {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes forestBounce {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* 历史记录样式 */
+    .history-card-container { background: #fff; border-radius: 1rem; padding: 1rem; }
+    .history-list { list-style: none; padding: 0; margin: 0; }
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.75rem 0;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-item .info { display: flex; align-items: center; gap: 1rem; }
+    .history-item .info .date { font-size: 0.75rem; color: #6b7280; }
+    .history-item .info .feeling { font-size: 1.25rem; }
+    .history-item .memo { font-size: 0.75rem; color: #374151; }
+
+    /* 响应式调整 */
+    @media (max-width: 576px) {
+      .card-choice { padding: 0.5rem; }
+      .card-choice .emoji { font-size: 1.25rem; }
+      .card-choice .text { font-size: 0.65rem; }
+      .history-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    }
+  </style>
 </head>
-<body class="container py-4">
-  <header class="mb-4 text-center">
-    <h1 class="text-danger">🍑 ぽんぽんダイアリー</h1>
-    <p class="text-muted">毎日のうんちを、かわいくしっかり管理しよう！</p>
-  </header>
+<body>
+  <div class="container">
 
-  <div class="btn-group d-flex mb-4">
-    <button class="btn btn-outline-secondary nav-btn active" onclick="switchSection('record')">📅 きろく</button>
-    <button class="btn btn-outline-secondary nav-btn" onclick="switchSection('history')">📓 りれき</button>
-    <button class="btn btn-outline-secondary nav-btn" onclick="switchSection('stats')">📊 とうけい</button>
-    <button class="btn btn-outline-secondary nav-btn" onclick="switchSection('settings')">⚙️ せってい</button>
-  </div>
-
-  <main>
-    <!-- 記録セクション -->
-    <section id="record" class="section active">
-      <div class="card mb-3">
-        <label class="form-label">📌 記録モード：</label>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="mode" id="modeManual" value="manual" checked>
-          <label class="form-check-label" for="modeManual">手動</label>
-        </div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="mode" id="modeTimer" value="timer">
-          <label class="form-check-label" for="modeTimer">タイマー</label>
-        </div>
-      </div>
-      <form id="poopForm">
-        <div class="card">
-          <div class="mb-3" id="timerSection" style="display:none;">
-            <label class="form-label">⏱ 計測モード</label><br>
-            <button type="button" class="btn btn-outline-success" id="startTimer">▶️ スタート</button>
-            <button type="button" class="btn btn-outline-danger" id="stopTimer" disabled>⏹ ストップ</button>
-            <span class="ms-2" id="durationDisplay">00:00</span>
-          </div>
+    <!-- 记录页面 -->
+    <section id="log" class="section">
+      <div class="card p-4 mb-4">
+        <h5 style="color: var(--primary-pink); margin-bottom: 1.5rem;">
+          <i class="fas fa-pencil-alt"></i> 日々の記録
+        </h5>
+        <form id="poopForm">
+          <!-- 日期选择 -->
           <div class="mb-3">
-            <label class="form-label">🕐 日時</label>
-            <input type="datetime-local" class="form-control" id="time" required>
+            <label class="form-label">📅 日付</label>
+            <input type="date" class="form-control" id="date" required>
           </div>
 
-          <!-- 卡片式选择 -->
+          <!-- 排便感选择 -->
           <div class="mb-3">
-            <label class="form-label">💩 状態</label>
-            <div class="card-grid" data-field="condition">
-              <div class="card-choice" data-value="正常"><span class="emoji">😊</span><span class="text">正常</span></div>
-              <div class="card-choice" data-value="軟便"><span class="emoji">😐</span><span class="text">軟便</span></div>
-              <div class="card-choice" data-value="下痢"><span class="emoji">😵</span><span class="text">下痢</span></div>
-              <div class="card-choice" data-value="便秘"><span class="emoji">😣</span><span class="text">便秘</span></div>
-              <div class="card-choice" data-value="血便"><span class="emoji">🚨</span><span class="text">血便</span></div>
-              <div class="card-choice" data-value="出なかった"><span class="emoji">❌</span><span class="text">出なかった</span></div>
+            <label class="form-label">🌀 排便感</label>
+            <div class="card-grid" data-field="feeling">
+              <div class="card-choice" data-value="すっきり">
+                <span class="emoji">😄</span>
+                <span class="text">すっきり</span>
+              </div>
+              <div class="card-choice" data-value="残便感あり">
+                <span class="emoji">😕</span>
+                <span class="text">残便感あり</span>
+              </div>
+              <div class="card-choice" data-value="出なかった">
+                <span class="emoji">😔</span>
+                <span class="text">出なかった</span>
+              </div>
             </div>
           </div>
 
-          <!-- 其他字段类似卡片式... -->
-          <div class="mb-3">
-            <label class="form-label">🎨 色</label>
-            <div class="card-grid" data-field="color">
-              <div class="card-choice" data-value="茶色"><span class="emoji">🤎</span><span class="text">茶色</span></div>
-              <div class="card-choice" data-value="黄土色"><span class="emoji">🟡</span><span class="text">黄土色</span></div>
-              <div class="card-choice" data-value="黒っぽい"><span class="emoji">⚫</span><span class="text">黒っぽい</span></div>
-              <div class="card-choice" data-value="赤っぽい"><span class="emoji">🔴</span><span class="text">赤っぽい</span></div>
-            </div>
-          </div>
-
-          <!-- 后续 shape, smell, urgency, feeling 同理 -->
-          
+          <!-- 备注 -->
           <div class="mb-3">
             <label class="form-label">📝 メモ</label>
             <textarea class="form-control" id="memo" rows="2" placeholder="食事、サプリ、ストレスなど"></textarea>
           </div>
-          <button class="btn btn-danger w-100" type="submit">🌟 記録する</button>
-        </div>
-      </form>
+
+          <!-- 提交按钮 -->
+          <button class="btn btn-primary btn-block" type="submit">
+            <i class="fas fa-save"></i> 🌟 記録する
+          </button>
+        </form>
+      </div>
     </section>
 
-    <!-- 历史、统计、设置部分保持不变 -->
-    <!-- ... -->
+    <!-- 历史记录页面 -->
+    <section id="history" class="section">
+      <div class="history-card-container mb-4">
+        <h5 style="color: var(--primary-pink); margin-bottom: 1.5rem;">
+          <i class="fas fa-history"></i> 記録履歴
+        </h5>
+        <ul class="history-list">
+          <!-- 示例条目，可由 JS 动态生成 -->
+          <li class="history-item">
+            <div class="info">
+              <div class="date">2025-07-01 08:00</div>
+              <div class="feeling">😄 すっきり</div>
+            </div>
+            <div class="memo">朝ヨーグルトを食べた</div>
+          </li>
+          <li class="history-item">
+            <div class="info">
+              <div class="date">2025-06-30 20:15</div>
+              <div class="feeling">😕 残便感あり</div>
+            </div>
+            <div class="memo">夕食が重かった</div>
+          </li>
+          <!-- 更多历史记录... -->
+        </ul>
+      </div>
+    </section>
 
-  </main>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome 和交互脚本（示例） -->
+  <script src="https://kit.fontawesome.com/your-kit.js" crossorigin="anonymous"></script>
   <script>
-    // 省略：切换 Section、计时逻辑、表单提交、历史渲染、统计渲染、卡片选择切换脚本
-    // ※ 你需要为所有 data-field="..." 的 .card-choice 添加点击选中逻辑：
-    // document.querySelectorAll('.card-choice').forEach(card=>{
-    //   card.onclick = () => {
-    //     const field = card.parentElement.dataset.field;
-    //     document.querySelectorAll(`.card-grid[data-field="${field}"] .card-choice`)
-    //       .forEach(c => c.classList.remove('selected'));
-    //     card.classList.add('selected');
-    //     // 将选中值写入隐藏 input 或保存到 record 对象
-    //   };
-    // });
+    // 简单示例：点击卡片选中效果
+    document.querySelectorAll('.card-choice').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.card-choice').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        // 可将 data-value 存入一个隐藏 input 以便提交
+      });
+    });
   </script>
 </body>
 </html>
