@@ -1,4 +1,19 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+.garden-container {
+        padding: 20px;
+      }
+
+      .garden-sky {
+        height: 160px;
+      }
+
+      .garden-header h2 {
+        font-size: 1.6rem;
+      }
+
+      .garden-main {
+        padding: 20px;
+      }
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <script>
     // 全局变量
     let records = JSON.parse(localStorage.getItem('poopRecords') || '[]');
@@ -1130,53 +1145,62 @@
 
       <section id="garden" class="section">
         <div class="garden-container">
-          <div class="clouds">
-            <div class="cloud cloud1"></div>
-            <div class="cloud cloud2"></div>
-          </div>
-          
-          <div class="garden-header">
-            <h2 style="margin-bottom: 8px; color: #2d5016; font-weight: 700;">🌳 うんちもりもり〜♪</h2>
-            <p style="color: #4a5d23;">うんちするたびにきが育つよ〜！ ٩(◕‿◕)۶</p>
+          <div class="garden-sky">
+            <div class="clouds">
+              <div class="cloud cloud1"></div>
+              <div class="cloud cloud2"></div>
+              <div class="cloud cloud3"></div>
+            </div>
+            
+            <div class="garden-header">
+              <h2>🌳 うんちもりもり〜♪</h2>
+              <p>うんちするたびにきが育つよ〜！ ٩(◕‿◕)۶</p>
+            </div>
+
+            <div class="garden-stats">
+              <div class="stat-card">
+                <span class="stat-number" id="total-trees">0</span>
+                <div class="stat-label">きのかず🌲</div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-number" id="total-records">0</span>
+                <div class="stat-label">きろく回数💩</div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-number" id="garden-level">1</span>
+                <div class="stat-label">もりレベル⭐</div>
+              </div>
+            </div>
           </div>
 
-          <div class="garden-stats">
-            <div class="stat-card">
-              <span class="stat-number" id="total-trees">0</span>
-              <div class="stat-label">きのかず🌲</div>
+          <div class="garden-main">
+            <div class="garden-area" id="garden-area">
+              <!-- 树木区域将通过JavaScript动态生成 -->
             </div>
-            <div class="stat-card">
-              <span class="stat-number" id="total-records">0</span>
-              <div class="stat-label">きろく回数💩</div>
-            </div>
-            <div class="stat-card">
-              <span class="stat-number" id="garden-level">1</span>
-              <div class="stat-label">もりレベル⭐</div>
-            </div>
-          </div>
 
-          <div class="garden-area" id="garden-area">
-            <!-- 树木区域将通过JavaScript动态生成 -->
-          </div>
+            <div class="garden-ground"></div>
 
-          <div class="garden-ground"></div>
-
-          <div class="fertilizer-section">
-            <div style="margin-bottom: 12px;">
-              <span style="font-size: 1.2rem; font-weight: 600; color: #8B4513;">
-                💩 うんちひりょう
-              </span>
+            <div class="fertilizer-panel">
+              <div class="fertilizer-header">
+                <div class="fertilizer-title">
+                  💩 うんちひりょう パワー
+                </div>
+                <div class="fertilizer-count" id="fertilizer-count">0</div>
+                <div class="fertilizer-description">
+                  うんちひりょうで木をそだてよう♪<br>
+                  きれいなもりをつくってね〜 ✨
+                </div>
+              </div>
+              
+              <div class="fertilizer-actions">
+                <button class="fertilizer-btn" onclick="useFertilizer()" id="fertilize-btn" disabled>
+                  🌱 ひりょうをあげる (1個)
+                </button>
+                <button class="fertilizer-btn plant" onclick="plantNewTree()" id="plant-btn" disabled>
+                  🌰 あたらしい木をうえる (3個)
+                </button>
+              </div>
             </div>
-            <div class="fertilizer-count" id="fertilizer-count">0</div>
-            <div style="font-size: 0.9rem; color: #65748b; margin-bottom: 16px;">
-              うんちひりょうで木をそだてよう♪
-            </div>
-            <button class="fertilizer-btn" onclick="useFertilizer()" id="fertilize-btn" disabled>
-              🌱 ひりょうをあげる
-            </button>
-            <button class="fertilizer-btn" onclick="plantNewTree()" id="plant-btn" disabled>
-              🌰 あたらしい木をうえる
-            </button>
           </div>
         </div>
       </section>
