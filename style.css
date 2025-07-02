@@ -1,0 +1,55 @@
+/* 基础重置 */
+* { box-sizing: border-box; }
+body { background: #fff0f5; font-family: 'Kosugi Maru', sans-serif; margin: 0; padding: 0; }
+.container { padding-top: 1rem; }
+
+/* 按钮统一风格 */
+.btn { border-radius: 1rem !important; transition: transform 0.2s ease, box-shadow 0.2s ease !important; }
+.btn:hover { transform: translateY(-2px) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; }
+.nav-btn { margin: 0 0.25rem; }
+.nav-btn.active { background-color: #FF6B9D !important; color: #fff !important; }
+
+/* 卡片式选择控件 */
+.form-select { display: none; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px,1fr)); gap: 0.5rem; margin-bottom: 1rem; }
+.card-choice {
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-choice .emoji { font-size: 1.5rem; display: block; margin-bottom: 0.25rem; }
+.card-choice .text { font-size: 0.75rem; }
+.card-choice:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+.card-choice.selected {
+  background: linear-gradient(135deg, #FF6B9D, #8b5cf6);
+  border-color: #FF6B9D;
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* 森林动画 */
+#forestDisplay {
+  font-size: 2.5rem;
+  line-height: 1.4;
+  animation: forestGrow 0.8s ease-in-out, forestBounce 2s infinite 1s;
+}
+@keyframes forestGrow {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes forestBounce {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* 响应式调整 */
+@media (max-width: 576px) {
+  .card-choice { padding: 0.5rem; }
+  .card-choice .emoji { font-size: 1.25rem; }
+  .card-choice .text { font-size: 0.65rem; }
+}
