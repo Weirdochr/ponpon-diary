@@ -187,7 +187,7 @@
       document.getElementById('garden-level').textContent = gardenData.level;
       document.getElementById('fertilizer-count').textContent = gardenData.fertilizer;
       
-
+      // 更新按钮状态
       const fertilizeBtn = document.getElementById('fertilize-btn');
       const plantBtn = document.getElementById('plant-btn');
       
@@ -197,14 +197,14 @@
 
     function clickTree(treeIndex) {
       if (!gardenData.trees[treeIndex]) {
-
+        // 空位置，尝试种植新树
         if (gardenData.fertilizer >= 3) {
           plantTreeAt(treeIndex);
         } else {
           showAchievement('💩', 'ひりょうがたりないよ〜', 'もっとうんちして〜♪ (´･ω･`)');
         }
       } else {
-
+        // 已有树木，显示信息
         const tree = gardenData.trees[treeIndex];
         const stageName = treeNames[Math.min(tree.level - 1, treeNames.length - 1)];
         showAchievement(treeStages[Math.min(tree.level - 1, treeStages.length - 1)], 
@@ -223,6 +223,7 @@
       
       localStorage.setItem('gardenData', JSON.stringify(gardenData));
       
+      // 添加种植动画
       setTimeout(() => {
         renderGarden();
         updateGardenStats();
@@ -237,6 +238,7 @@
     }
 
     function plantNewTree() {
+      // 寻找第一个空位置
       const maxTrees = 5 + gardenData.level * 2;
       for (let i = 0; i < maxTrees; i++) {
         if (!gardenData.trees[i]) {
@@ -270,6 +272,7 @@
         renderGarden();
         updateGardenStats();
         
+        // 添加成长动画
         setTimeout(() => {
           const grownTree = document.querySelector(`[data-tree-id="${lowestLevelIndex}"]`);
           if (grownTree) {
@@ -289,7 +292,7 @@
     function addFertilizer() {
       gardenData.fertilizer += 1;
       
-
+      // 每5个记录增加一个等级
       const newLevel = Math.floor(records.length / 5) + 1;
       if (newLevel > gardenData.level) {
         gardenData.level = newLevel;
@@ -308,7 +311,7 @@
         gardenData.level = newGardenLevel;
         localStorage.setItem('gardenData', JSON.stringify(gardenData));
         showAchievement('🎉', 'もりレベルアップ！', `レベル ${newGardenLevel} のもりになったよ〜♪`);
-        renderGarden(); 
+        renderGarden(); // 重新渲染以显示新的位置
       }
     }
 
@@ -339,20 +342,24 @@
         </div>
       </section>  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <script>
+    // 全局变量
     let records = JSON.parse(localStorage.getItem('poopRecords') || '[]');
     let timerInterval = null;
     let startTime = null;
     let timerSession = null;
     let currentMode = 'manual';
 
+    // 模式切换功能
     function switchMode(mode) {
       currentMode = mode;
       
+      // 更新按钮状态
       document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.classList.remove('active');
       });
       event.target.classList.add('active');
 
+      // 显示/隐藏对应界面
       if (mode === 'manual') {
         document.getElementById('manual-mode').style.display = 'block';
         document.getElementById('timer-mode').style.display = 'none';
@@ -362,6 +369,7 @@
       }
     }
 
+    // 计时器功能
     function startTimer() {
       startTime = new Date();
       const startBtn = document.getElementById('start-btn');
@@ -375,7 +383,7 @@
       status.className = 'timer-status timing';
       
       timerInterval = setInterval(updateTimer, 1000);
-      updateTimer(); 
+      updateTimer(); // 立即更新一次
     }
 
     function stopTimer() {
@@ -397,12 +405,14 @@
       status.textContent = `🎉 おつかれさま〜！ ${formatDuration(duration)} かかったよ♪`;
       status.className = 'timer-status finished';
       
+      // 保存计时器会话数据
       timerSession = {
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         duration: duration
       };
       
+      // 自动切换到手动模式填写详细信息
       setTimeout(() => {
         switchToManualModeWithTimer();
       }, 1500);
@@ -423,12 +433,14 @@
     }
 
     function switchToManualModeWithTimer() {
+      // 切换到手动模式
       document.querySelector('.mode-btn[onclick="switchMode(\'manual\')"]').classList.add('active');
       document.querySelector('.mode-btn[onclick="switchMode(\'timer\')"]').classList.remove('active');
       document.getElementById('manual-mode').style.display = 'block';
       document.getElementById('timer-mode').style.display = 'none';
       currentMode = 'manual';
       
+      // 自动设置时间为计时器的开始时间
       if (timerSession && timerSession.startTime) {
         const startDate = new Date(timerSession.startTime);
         const tzOffset = startDate.getTimezoneOffset() * 60000;
@@ -436,18 +448,21 @@
         document.getElementById('time').value = localTime.toISOString().slice(0, 16);
       }
       
+      // 添加计时器信息到页面
       showTimerInfo();
     }
 
     function showTimerInfo() {
       if (!timerSession) return;
       
+      // 检查是否已经有计时器信息显示
       let timerInfo = document.getElementById('timer-info-display');
       if (!timerInfo) {
         timerInfo = document.createElement('div');
         timerInfo.id = 'timer-info-display';
         timerInfo.className = 'timer-info';
         
+        // 插入到表单开头
         const form = document.getElementById('poopForm');
         form.insertBefore(timerInfo, form.firstChild);
       }
@@ -879,7 +894,7 @@
   <div class="container">
     <header class="header">
       <h1>💩 うんちダイアリー</h1>
-      <p>きょうも元気にうんち記録だよ〜</p>
+      <p>きょうも元気にうんち記録だよ〜♪ (´∀｀)♡</p>
     </header>
 
     <div class="nav-container">
@@ -909,6 +924,7 @@
 
     <main>
       <section id="record" class="section active">
+        <!-- 记录模式切换 -->
         <div class="record-mode-toggle">
           <button class="mode-btn active" onclick="switchMode('manual')">
             ✏️ てがきモード
@@ -921,7 +937,7 @@
         <!-- 计时器模式 -->
         <div id="timer-mode" class="timer-container" style="display: none;">
           <div class="timer-status waiting" id="timer-status">
-            🚽 トイレタイム〜 準備はいい？
+            🚽 トイレタイム〜 準備はいい？ ♪(´▽｀)
           </div>
           <div class="timer-display" id="timer-display">00:00</div>
           <div>
@@ -938,15 +954,16 @@
           </div>
         </div>
 
+        <!-- 手动记录模式 -->
         <div id="manual-mode" class="form-container">
           <form id="poopForm">
             <div class="form-group">
-              <label class="form-label">📅 ひづけと時間だよ〜</label>
+              <label class="form-label">📅 ひづけと時間だよ〜 (´∀｀)</label>
               <input type="datetime-local" id="time" class="datetime-input" required>
             </div>
 
             <div class="form-group">
-              <label class="form-label">💩 うんちちゃんの調子はどう？</label>
+              <label class="form-label">💩 うんちちゃんの調子はどう？ ♪(´▽｀)</label>
               <div class="card-grid" data-field="condition">
                 <div class="card-choice" data-value="げんき">
                   <span class="emoji">😊</span>
@@ -1139,6 +1156,7 @@
           </div>
 
           <div class="garden-area" id="garden-area">
+            <!-- 树木区域将通过JavaScript动态生成 -->
           </div>
 
           <div class="garden-ground"></div>
@@ -1190,60 +1208,77 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <script>
+    // 全局变量
     let records = JSON.parse(localStorage.getItem('poopRecords') || '[]');
 
+    // 导航功能
     function showSection(sectionId) {
+      // 隐藏所有section
       document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
       });
       
+      // 显示目标section
       document.getElementById(sectionId).classList.add('active');
       
+      // 更新导航按钮状态
       document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
       });
       event.target.classList.add('active');
 
+      // 如果是统计页面，渲染图表
       if (sectionId === 'stats') {
         renderCharts();
       }
 
+      // 如果是历史页面，渲染记录
       if (sectionId === 'history') {
         renderHistory();
       }
     }
 
+    // 卡片选择功能
     document.addEventListener('DOMContentLoaded', function() {
+      // 为所有卡片添加点击事件
       document.querySelectorAll('.card-choice').forEach(card => {
         card.addEventListener('click', function() {
+          // 获取所属的字段组
           const fieldGroup = this.closest('[data-field]');
           if (fieldGroup) {
+            // 清除同组其他卡片的选中状态
             fieldGroup.querySelectorAll('.card-choice').forEach(c => {
               c.classList.remove('selected');
             });
+            // 选中当前卡片
             this.classList.add('selected');
           }
         });
       });
 
+      // 设置默认时间为当前时间
       const now = new Date();
       const timeInput = document.getElementById('time');
       const tzOffset = now.getTimezoneOffset() * 60000;
       const localTime = new Date(now.getTime() - tzOffset);
       timeInput.value = localTime.toISOString().slice(0, 16);
 
+      // 表单提交处理
       document.getElementById('poopForm').addEventListener('submit', function(e) {
         e.preventDefault();
         saveRecord();
       });
 
+      // 初始化页面
       renderHistory();
     });
 
+    // 保存记录
     function saveRecord() {
       const time = document.getElementById('time').value;
       const memo = document.getElementById('memo').value;
 
+      // 收集所有选择的值
       const formData = { time, memo };
       
       document.querySelectorAll('[data-field]').forEach(fieldGroup => {
@@ -1252,11 +1287,13 @@
         formData[fieldName] = selectedCard ? selectedCard.getAttribute('data-value') : '';
       });
 
+      // 验证必填字段
       if (!time) {
         alert('ひづけと時間をえらんでね〜 (´･ω･`)');
         return;
       }
 
+      // 保存到localStorage
       const record = {
         id: Date.now(),
         ...formData,
@@ -1266,23 +1303,28 @@
       records.unshift(record);
       localStorage.setItem('poopRecords', JSON.stringify(records));
 
+      // 显示成功消息
       alert('きろくできたよ〜♪ おつかれさま！ ヾ(＾∇＾) 🎉');
 
+      // 重置表单
       resetForm();
     }
 
+    // 重置表单
     function resetForm() {
       document.querySelectorAll('.card-choice.selected').forEach(card => {
         card.classList.remove('selected');
       });
       document.getElementById('memo').value = '';
       
+      // 重置时间为当前时间
       const now = new Date();
       const tzOffset = now.getTimezoneOffset() * 60000;
       const localTime = new Date(now.getTime() - tzOffset);
       document.getElementById('time').value = localTime.toISOString().slice(0, 16);
     }
 
+    // 渲染历史记录
     function renderHistory() {
       const recordList = document.getElementById('recordList');
       
@@ -1317,6 +1359,7 @@
       `).join('');
     }
 
+    // 格式化日期
     function formatDate(dateString) {
       const date = new Date(dateString);
       return date.toLocaleString('zh-CN', {
@@ -1328,6 +1371,7 @@
       });
     }
 
+    // 导出CSV
     function exportCSV() {
       if (records.length === 0) {
         alert('まだデータがないよ〜 (´･ω･`) きろくしてからまた来てね♪');
@@ -1356,10 +1400,13 @@
       link.click();
     }
 
+    // 渲染图表 (简化版本)
     function renderCharts() {
+      // 这里可以添加Chart.js图表渲染逻辑
       console.log('グラフをかいてるよ〜♪', records);
     }
 
+    // 保存提醒设置
     function saveReminder() {
       const reminderTime = document.getElementById('reminderTime').value;
       if (reminderTime) {
@@ -1368,6 +1415,7 @@
       }
     }
 
+    // 加载设置
     document.addEventListener('DOMContentLoaded', function() {
       const savedReminderTime = localStorage.getItem('reminderTime');
       if (savedReminderTime) {
