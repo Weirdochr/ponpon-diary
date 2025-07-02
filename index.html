@@ -4,244 +4,227 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ぽんぽんダイアリー</title>
-  <link
-    href="https://fonts.googleapis.com/css?family=Kosugi+Maru&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    integrity="sha512-..."
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
+  <link href="https://fonts.googleapis.com/css?family=Kosugi+Maru&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root {
-      --primary-pink: #FF6B9D;
-    }
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      background: #fff0f5;
-      font-family: 'Kosugi Maru', sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      padding-top: 1rem;
-    }
-    .btn {
-      border-radius: 1rem !important;
-      transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-    }
-    .btn:hover {
-      transform: translateY(-2px) !important;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-    }
-    .nav-btn {
-      margin: 0 0.25rem;
-    }
-    .nav-btn.active {
-      background-color: var(--primary-pink) !important;
-      color: #fff !important;
-    }
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-    .card-choice {
-      background: #fff;
-      border: 2px solid #e5e7eb;
-      border-radius: 1rem;
-      padding: 0.75rem;
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .card-choice .emoji {
-      font-size: 1.5rem;
-      display: block;
-      margin-bottom: 0.25rem;
-    }
-    .card-choice .text {
-      font-size: 0.75rem;
-    }
-    .card-choice:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-    }
-    .card-choice.selected {
-      background: linear-gradient(135deg, #FF6B9D, #8b5cf6);
-      border-color: #FF6B9D;
-      color: #fff;
-      transform: scale(1.05);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    }
-    #forestDisplay {
-      font-size: 2.5rem;
-      line-height: 1.4;
-      animation: forestGrow 0.8s ease-in-out, forestBounce 2s infinite 1s;
-    }
-    @keyframes forestGrow {
-      from {
-        opacity: 0;
-        transform: scale(0.8);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-    @keyframes forestBounce {
-      0%,
-      100% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.1);
-      }
-    }
-    .history-card-container {
-      background: #fff;
-      border-radius: 1rem;
-      padding: 1rem;
-    }
-    .history-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .history-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 0.75rem 0;
-    }
-    .history-item:last-child {
-      border-bottom: none;
-    }
-    .history-item .info {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .history-item .info .date {
-      font-size: 0.75rem;
-      color: #6b7280;
-    }
-    .history-item .info .feeling {
-      font-size: 1.25rem;
-    }
-    .history-item .memo {
-      font-size: 0.75rem;
-      color: #374151;
-    }
-    @media (max-width: 576px) {
-      .card-choice {
-        padding: 0.5rem;
-      }
-      .card-choice .emoji {
-        font-size: 1.25rem;
-      }
-      .card-choice .text {
-        font-size: 0.65rem;
-      }
-      .history-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-    }
+    :root { --bg-color: #fff0f5; --text-color: #333; --primary-pink: #FF6B9D; --poop-brown: #8b5a2b; }
+    [data-theme="dark"] { --bg-color: #222; --text-color: #eee; }
+    [data-theme="poop"] { --bg-color: var(--poop-brown); --text-color: #fff; }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:0; font-family:'Kosugi Maru',sans-serif; background:var(--bg-color); color:var(--text-color); }
+    .container { padding:1rem; }
+    .btn { border-radius:1rem!important; }
+    .form-label { font-weight:bold; display:flex; align-items:center; gap:0.5rem; }
+    .card-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(60px,1fr)); gap:0.5rem; }
+    .card-choice { background:#fff; border:2px solid #e5e7eb; border-radius:1rem; padding:0.5rem; text-align:center; cursor:pointer; transition:transform .2s,box-shadow .2s; }
+    .card-choice:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.1); }
+    .card-choice.selected { background:var(--primary-pink); border-color:var(--primary-pink); color:#fff; }
+    @keyframes shake { 0%,100% { transform: translateX(0);} 25%,75% { transform: translateX(-5px);} 50% { transform: translateX(5px);} }
+    .shake { animation: shake 0.3s; }
+    #forestLevel { text-align:center; margin:0.5rem 0; font-size:1.1rem; }
+    #forestDisplay { font-size:2rem; text-align:center; transition:transform .3s ease; }
   </style>
 </head>
-<body>
+<body data-theme="white">
   <div class="container">
-    <section id="log" class="mb-4">
-      <div class="card p-4">
-        <h5 style="color: var(--primary-pink); margin-bottom: 1.5rem;">
-          <i class="fas fa-pencil-alt"></i> 日々の記録
-        </h5>
-        <form id="poopForm">
-          <div class="mb-3">
-            <label class="form-label">📅 日付</label>
-            <input type="date" class="form-control" id="date" required />
+    <!-- 主题切换 -->
+    <div class="mb-3 text-end">
+      <button class="btn btn-sm btn-outline-secondary theme-btn" data-theme="white">☁️ ふわふわ白</button>
+      <button class="btn btn-sm btn-outline-secondary theme-btn" data-theme="dark">🌙 しっとり夜</button>
+      <button class="btn btn-sm btn-outline-secondary theme-btn" data-theme="poop">💩 うんちブラウン</button>
+    </div>
+    <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-record">📝 ぽんぽん記録</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-forest">🌲 森をのぞく</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-stats">📈 もようしキャッチ</button></li>
+    </ul>
+    <div class="tab-content">
+      <!-- 記録 Tab -->
+      <div class="tab-pane fade show active" id="tab-record">
+        <h3>🐣 ぽんぽんタイム！</h3>
+        <form id="entryForm" class="card p-4 mb-4">
+          <div id="manualFields" class="mb-3">
+            <label class="form-label"><span>📅</span> 今日はいつ？</label>
+            <input type="date" class="form-control" id="entryDate" required>
+            <label class="form-label mt-2"><span>⏰</span> 何時かな？</label>
+            <input type="time" class="form-control" id="entryTime" required>
           </div>
-          <div class="mb-3">
-            <label class="form-label">🌀 排便感</label>
-            <div class="card-grid" data-field="feeling">
-              <div class="card-choice" data-value="すっきり">
-                <span class="emoji">😄</span>
-                <span class="text">すっきり</span>
-              </div>
-              <div class="card-choice" data-value="残便感あり">
-                <span class="emoji">😕</span>
-                <span class="text">残便感あり</span>
-              </div>
-              <div class="card-choice" data-value="出なかった">
-                <span class="emoji">😔</span>
-                <span class="text">出なかった</span>
-              </div>
+          <div class="mb-3" id="stateChoicesContainer">
+            <label class="form-label"><span>💩</span> うんちの状態</label>
+            <div class="card-grid" id="stateChoices">
+              <div class="card-choice" data-value="正常">✅ ばっちり</div>
+              <div class="card-choice" data-value="軟便">💧 ぷよぷよ</div>
+              <div class="card-choice" data-value="下痢">🚽 ズルッ</div>
+              <div class="card-choice" data-value="便秘">🔒 ぎゅうぎゅう</div>
+              <div class="card-choice" data-value="血便">🩸 ドキドキ</div>
+            </div>
+          </div>
+          <div class="mb-3" id="colorChoicesContainer">
+            <label class="form-label"><span>🎨</span> うんちの色</label>
+            <div class="card-grid" id="colorChoices">
+              <div class="card-choice" data-value="茶色">🍫 チョコ色</div>
+              <div class="card-choice" data-value="黄土色">🟡 あわ色</div>
+              <div class="card-choice" data-value="黒っぽい">⚫️ こげ茶</div>
+              <div class="card-choice" data-value="赤っぽい">🟥 べにいろ</div>
+            </div>
+          </div>
+          <div class="mb-3" id="shapeChoicesContainer">
+            <label class="form-label"><span>🍌</span> かたち</label>
+            <div class="card-grid" id="shapeChoices">
+              <div class="card-choice" data-value="バナナ状">🍌 バナナ</div>
+              <div class="card-choice" data-value="粒状">🌰 つぶつぶ</div>
+              <div class="card-choice" data-value="ドロドロ">💧 どろどろ</div>
+            </div>
+          </div>
+          <div class="mb-3" id="smellChoicesContainer">
+            <label class="form-label"><span>👃</span> におい</label>
+            <div class="card-grid" id="smellChoices">
+              <div class="card-choice" data-value="なし">😐 ほわほわ</div>
+              <div class="card-choice" data-value="普通">🙂 ふつう</div>
+              <div class="card-choice" data-value="強い">🤢 くさっ</div>
+            </div>
+          </div>
+          <div class="mb-3" id="urgencyChoicesContainer">
+            <label class="form-label"><span>🚨</span> 緊急度</label>
+            <div class="card-grid" id="urgencyChoices">
+              <div class="card-choice" data-value="突然">⚡️ いきなり</div>
+              <div class="card-choice" data-value="我慢できた">⏳ ぎりぎり</div>
+              <div class="card-choice" data-value="普通">🙂 のんびり</div>
+            </div>
+          </div>
+          <div class="mb-3" id="feelingChoicesContainer">
+            <label class="form-label"><span>🌀</span> 出た感じ</label>
+            <div class="card-grid" id="feelingChoices">
+              <div class="card-choice" data-value="すっきりした">😄 すっきり</div>
+              <div class="card-choice" data-value="残便感あり">😕 もっと出たい</div>
+              <div class="card-choice" data-value="出なかった">😔 おあずけ</div>
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">📝 メモ</label>
-            <textarea
-              class="form-control"
-              id="memo"
-              rows="2"
-              placeholder="食事、サプリ、ストレスなど"
-            ></textarea>
+            <label class="form-label"><span>📝</span> ひとこと</label>
+            <textarea class="form-control" id="memo" rows="2" placeholder="何食べた？ストレス？"></textarea>
           </div>
-          <button class="btn btn-primary btn-block" type="submit">
-            <i class="fas fa-save"></i> 🌟 記録する
-          </button>
+          <button class="btn btn-primary" type="submit" id="submitBtn">✨ 記録ぽん！</button>
         </form>
       </div>
-    </section>
-    <section id="history">
-      <div class="history-card-container">
-        <h5 style="color: var(--primary-pink); margin-bottom: 1.5rem;">
-          <i class="fas fa-history"></i> 記録履歴
-        </h5>
-        <ul class="history-list">
-          <li class="history-item">
-            <div class="info">
-              <div class="date">2025-07-01 08:00</div>
-              <div class="feeling">😄 すっきり</div>
-            </div>
-            <div class="memo">朝ヨーグルトを食べた</div>
-          </li>
-          <li class="history-item">
-            <div class="info">
-              <div class="date">2025-06-30 20:15</div>
-              <div class="feeling">😕 残便感あり</div>
-            </div>
-            <div class="memo">夕食が重かった</div>
-          </li>
-        </ul>
+      <!-- 森 Tab -->
+      <div class="tab-pane fade" id="tab-forest">
+        <h3 class="text-center">🌳 ぽんぽんの森</h3>
+        <div id="forestLevel"></div>
+        <div id="forestDisplay"></div>
+        <p class="text-center text-muted">* 10ぽんで🌴、20ぽんで🏝️、30ぽんで🏞️レベルアップ！</p>
       </div>
-    </section>
+      <!-- 統計 Tab -->
+      <div class="tab-pane fade" id="tab-stats">
+        <h3 class="mb-3 text-center">📈 わたしのぽん統計</h3>
+        <div class="d-flex gap-2 justify-content-center mb-3">
+          <button class="btn btn-sm btn-outline-primary chart-btn" data-type="bar">📊 棒グラフ</button>
+          <button class="btn btn-sm btn-outline-primary chart-btn" data-type="line">📈 折れ線</button>
+          <button class="btn btn-sm btn-outline-primary chart-btn" data-type="pie">🥧 円グラフ</button>
+        </div>
+        <canvas id="statsChart"></canvas>
+      </div>
+    </div>
   </div>
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-  ></script>
+
+  <!-- カスタムモーダル -->
+  <div class="modal fade" id="messageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="modal-body">
+          <p id="modalText" class="mb-0"></p>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    document.querySelectorAll('.card-choice').forEach((el) => {
-      el.addEventListener('click', () => {
-        document
-          .querySelectorAll('.card-choice')
-          .forEach((c) => c.classList.remove('selected'));
-        el.classList.add('selected');
-      });
+    // Theme switch
+    document.querySelectorAll('.theme-btn').forEach(btn=>btn.addEventListener('click',()=>document.body.setAttribute('data-theme',btn.dataset.theme)));
+    
+    const messageModal = new bootstrap.Modal(document.getElementById('messageModal'));
+    function showMessage(text){ document.getElementById('modalText').textContent = text; messageModal.show(); }
+    
+    // カード選択
+    document.querySelectorAll('.card-choice').forEach(el=>el.addEventListener('click',()=>{
+      const c = el.parentElement;
+      c.querySelectorAll('.card-choice').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+    }));
+
+    // レコード保存
+    const records = JSON.parse(localStorage.getItem('ponponRecords')||'[]');
+    function saveRecord(r){ records.push(r); localStorage.setItem('ponponRecords', JSON.stringify(records)); updateForest(); renderChart(currentChartType); }
+
+    // フォーム送信
+    document.getElementById('entryForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const required = [
+        { id:'stateChoicesContainer', name:'うんちの状態' },
+        { id:'colorChoicesContainer', name:'うんちの色' },
+        { id:'shapeChoicesContainer', name:'かたち' },
+        { id:'smellChoicesContainer', name:'におい' },
+        { id:'urgencyChoicesContainer', name:'緊急度' },
+        { id:'feelingChoicesContainer', name:'出た感じ' }
+      ];
+      for(let{ id, name } of required){
+        const cont = document.getElementById(id);
+        if(!cont.querySelector('.card-choice.selected')){
+          cont.classList.add('shake'); setTimeout(()=>cont.classList.remove('shake'),300);
+          showMessage(`❗️ ${name} を教えてね！`);
+          return;
+        }
+      }
+      const r = {
+        date: document.getElementById('entryDate').value,
+        time: document.getElementById('entryTime').value,
+        state: document.querySelector('#stateChoices .selected').dataset.value,
+        color: document.querySelector('#colorChoices .selected').dataset.value,
+        shape: document.querySelector('#shapeChoices .selected').dataset.value,
+        smell: document.querySelector('#smellChoices .selected').dataset.value,
+        urgency: document.querySelector('#urgencyChoices .selected').dataset.value,
+        feeling: document.querySelector('#feelingChoices .selected').dataset.value,
+        memo: document.getElementById('memo').value
+      };
+      saveRecord(r);
+      showMessage('🎉 ぽんぽん完了！');
+      e.target.reset();
+      document.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));
     });
+
+    // 森の更新
+    function updateForest(){
+      const count = records.length;
+      let icon='🌱', level='種まき';
+      if(count >= 30){ icon='🏞️'; level='大森林'; }
+      else if(count >=20){ icon='🏝️'; level='島の森'; }
+      else if(count >=10){ icon='🌴'; level='ヤシの木'; }
+      document.getElementById('forestLevel').textContent = `ぽんぽん数: ${count} → ${level}`;
+      document.getElementById('forestDisplay').textContent = icon.repeat(Math.min(Math.floor(count/5),10));
+      document.getElementById('forestDisplay').style.transform='scale(1.1)';
+      setTimeout(()=>document.getElementById('forestDisplay').style.transform='scale(1)',300);
+    }
+
+    // 統計チャート
+    let chart, currentChartType='bar';
+    function renderChart(type){
+      currentChartType = type;
+      const byDay = {};
+      records.forEach(r=> byDay[r.date] = (byDay[r.date]||0)+1);
+      const labels = Object.keys(byDay), data = labels.map(d=>byDay[d]);
+      const ctx = document.getElementById('statsChart').getContext('2d');
+      if(chart) chart.destroy();
+      chart = new Chart(ctx,{ type, data:{ labels, datasets:[{ label:'ぽん回数', data }] } });
+    }
+    document.querySelectorAll('.chart-btn').forEach(btn=>btn.addEventListener('click',()=>renderChart(btn.dataset.type)));
+
+    // 初期化
+    updateForest(); renderChart('bar');
   </script>
 </body>
 </html>
