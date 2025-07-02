@@ -1,4 +1,463 @@
-<!DOCTYPE html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script>
+    // 全局变量
+    let records = JSON.parse(localStorage.getItem('poopRecords') || '[]');
+    let gardenData = JSON.parse(localStorage.getItem('gardenData') || '{"trees": [], "fertilizer": 0, "level": 1}');
+    let timerInterval = null;
+    let startTime = null;
+    let timerSession = null;
+    let currentMode = 'manual';
+
+    // 树木等级对应的emoji
+    const treeStages = ['🌱', '🌿', '🌳', '🌲', '🎄'];
+    const treeNames = ['たね', 'ふたば', 'わかき', 'おとなの木', 'りっぱな木'];
+
+    // 模式切换功能
+    function switchMode(mode) {
+      currentMode = mode;
+      
+      // 更新按钮状态
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // 显示/隐藏对应界面
+      if (mode === 'manual') {
+        document.getElementById('manual-mode').style.display = 'block';
+        document.getElementById('timer-mode').style.display = 'none';
+      } else {
+        document.getElementById('manual-mode').style.display = 'none';
+        document.getElementById('timer-mode').style.display = 'block';
+      }
+    }
+
+    // 计时器功能
+    function startTimer() {
+      startTime = new Date();
+      const startBtn = document.getElementById('start-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      const status = document.getElementById('timer-status');
+      
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      
+      status.textContent = '🚽 トイレタイム計測中〜♪ がんばって！ (ﾉ´∀｀*)';
+      status.className = 'timer-status timing';
+      
+      timerInterval = setInterval(updateTimer, 1000);
+      updateTimer(); // 立即更新一次
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      
+      const endTime = new Date();
+      const duration = Math.floor((endTime - startTime) / 1000);
+      
+      const startBtn = document.getElementById('start-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      const status = document.getElementById('timer-status');
+      
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      
+      status.textContent = `🎉 おつかれさま〜！ ${formatDuration(duration)} かかったよ♪`;
+      status.className = 'timer-status finished';
+      
+      // 保存计时器会话数据
+      timerSession = {
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        duration: duration
+      };
+      
+      // 自动切换到手动模式填写详细信息
+      setTimeout(() => {
+        switchToManualModeWithTimer();
+      }, 1500);
+    }
+
+    function updateTimer() {
+      if (!startTime) return;
+      
+      const now = new Date();
+      const elapsed = Math.floor((now - startTime) / 1000);
+      document.getElementById('timer-display').textContent = formatDuration(elapsed);
+    }
+
+    function formatDuration(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function switchToManualModeWithTimer() {
+      // 切换到手动模式
+      document.querySelector('.mode-btn[onclick="switchMode(\'manual\')"]').classList.add('active');
+      document.querySelector('.mode-btn[onclick="switchMode(\'timer\')"]').classList.remove('active');
+      document.getElementById('manual-mode').style.display = 'block';
+      document.getElementById('timer-mode').style.display = 'none';
+      currentMode = 'manual';
+      
+      // 自动设置时间为计时器的开始时间
+      if (timerSession && timerSession.startTime) {
+        const startDate = new Date(timerSession.startTime);
+        const tzOffset = startDate.getTimezoneOffset() * 60000;
+        const localTime = new Date(startDate.getTime() - tzOffset);
+        document.getElementById('time').value = localTime.toISOString().slice(0, 16);
+      }
+      
+      // 添加计时器信息到页面
+      showTimerInfo();
+    }
+
+    function showTimerInfo() {
+      if (!timerSession) return;
+      
+      // 检查是否已经有计时器信息显示
+      let timerInfo = document.getElementById('timer-info-display');
+      if (!timerInfo) {
+        timerInfo = document.createElement('div');
+        timerInfo.id = 'timer-info-display';
+        timerInfo.className = 'timer-info';
+        
+        // 插入到表单开头
+        const form = document.getElementById('poopForm');
+        form.insertBefore(timerInfo, form.firstChild);
+      }
+      
+      const startTime = new Date(timerSession.startTime);
+      const endTime = new Date(timerSession.endTime);
+      
+      timerInfo.innerHTML = `
+        <div style="text-align: center; margin-bottom: 12px;">
+          ⏱️ <strong>タイマーきろく</strong>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.9rem;">
+          <div>開始: ${startTime.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})}</div>
+          <div>終了: ${endTime.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})}</div>
+        </div>
+        <div style="text-align: center; margin-top: 8px; font-weight: 600; color: #6366f1;">
+          時間: ${formatDuration(timerSession.duration)} ⏰
+        </div>
+      `;
+    }
+
+    // 花园功能
+    function initGarden() {
+      renderGarden();
+      updateGardenStats();
+    }
+
+    function renderGarden() {
+      const gardenArea = document.getElementById('garden-area');
+      const maxTrees = Math.min(20, 5 + gardenData.level * 2); // 根据等级增加最大树木数
+      
+      gardenArea.innerHTML = '';
+      
+      // 渲染现有树木
+      for (let i = 0; i < maxTrees; i++) {
+        const treeSpot = document.createElement('div');
+        treeSpot.className = 'tree-spot';
+        treeSpot.onclick = () => clickTree(i);
+        
+        if (gardenData.trees[i]) {
+          const tree = gardenData.trees[i];
+          const treeLevel = Math.min(tree.level, treeStages.length - 1);
+          
+          treeSpot.innerHTML = `
+            <div class="tree" data-tree-id="${i}">${treeStages[treeLevel]}</div>
+            <div class="tree-level">Lv.${tree.level}</div>
+          `;
+        } else {
+          treeSpot.innerHTML = `<div class="empty-spot">➕</div>`;
+        }
+        
+        gardenArea.appendChild(treeSpot);
+      }
+    }
+
+    function updateGardenStats() {
+      document.getElementById('total-trees').textContent = gardenData.trees.length;
+      document.getElementById('total-records').textContent = records.length;
+      document.getElementById('garden-level').textContent = gardenData.level;
+      document.getElementById('fertilizer-count').textContent = gardenData.fertilizer;
+      
+
+      const fertilizeBtn = document.getElementById('fertilize-btn');
+      const plantBtn = document.getElementById('plant-btn');
+      
+      fertilizeBtn.disabled = gardenData.fertilizer < 1 || gardenData.trees.length === 0;
+      plantBtn.disabled = gardenData.fertilizer < 3 || gardenData.trees.length >= (5 + gardenData.level * 2);
+    }
+
+    function clickTree(treeIndex) {
+      if (!gardenData.trees[treeIndex]) {
+
+        if (gardenData.fertilizer >= 3) {
+          plantTreeAt(treeIndex);
+        } else {
+          showAchievement('💩', 'ひりょうがたりないよ〜', 'もっとうんちして〜♪ (´･ω･`)');
+        }
+      } else {
+
+        const tree = gardenData.trees[treeIndex];
+        const stageName = treeNames[Math.min(tree.level - 1, treeNames.length - 1)];
+        showAchievement(treeStages[Math.min(tree.level - 1, treeStages.length - 1)], 
+                       `${stageName} Lv.${tree.level}`, 
+                       `このきは ${tree.records} 回のうんちで育ったよ♪`);
+      }
+    }
+
+    function plantTreeAt(treeIndex) {
+      gardenData.fertilizer -= 3;
+      gardenData.trees[treeIndex] = {
+        level: 1,
+        records: 0,
+        plantedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('gardenData', JSON.stringify(gardenData));
+      
+      setTimeout(() => {
+        renderGarden();
+        updateGardenStats();
+        
+        const newTree = document.querySelector(`[data-tree-id="${treeIndex}"]`);
+        if (newTree) {
+          newTree.classList.add('growing');
+        }
+        
+        showAchievement('🌱', 'あたらしい木をうえたよ〜♪', 'だいじに育ててね〜 ٩(◕‿◕)۶');
+      }, 100);
+    }
+
+    function plantNewTree() {
+      const maxTrees = 5 + gardenData.level * 2;
+      for (let i = 0; i < maxTrees; i++) {
+        if (!gardenData.trees[i]) {
+          plantTreeAt(i);
+          return;
+        }
+      }
+    }
+
+    function useFertilizer() {
+      if (gardenData.fertilizer < 1 || gardenData.trees.length === 0) return;
+      
+      // 找到等级最低的树
+      let lowestLevelIndex = 0;
+      let lowestLevel = Infinity;
+      
+      for (let i = 0; i < gardenData.trees.length; i++) {
+        if (gardenData.trees[i] && gardenData.trees[i].level < lowestLevel) {
+          lowestLevel = gardenData.trees[i].level;
+          lowestLevelIndex = i;
+        }
+      }
+      
+      if (gardenData.trees[lowestLevelIndex]) {
+        gardenData.fertilizer -= 1;
+        gardenData.trees[lowestLevelIndex].level += 1;
+        gardenData.trees[lowestLevelIndex].records += 1;
+        
+        localStorage.setItem('gardenData', JSON.stringify(gardenData));
+        
+        renderGarden();
+        updateGardenStats();
+        
+        setTimeout(() => {
+          const grownTree = document.querySelector(`[data-tree-id="${lowestLevelIndex}"]`);
+          if (grownTree) {
+            grownTree.classList.add('growing');
+          }
+        }, 100);
+        
+        const newLevel = gardenData.trees[lowestLevelIndex].level;
+        const stageName = treeNames[Math.min(newLevel - 1, treeNames.length - 1)];
+        showAchievement('🌿', 'きが成長したよ〜♪', `${stageName} Lv.${newLevel} になったよ〜 ヾ(＾∇＾)`);
+        
+        // 检查等级提升
+        checkLevelUp();
+      }
+    }
+
+    function addFertilizer() {
+      gardenData.fertilizer += 1;
+      
+
+      const newLevel = Math.floor(records.length / 5) + 1;
+      if (newLevel > gardenData.level) {
+        gardenData.level = newLevel;
+        showAchievement('⭐', 'もりレベルアップ！', `レベル ${newLevel} になったよ〜♪ 新しい場所が使えるよ〜 ٩(◕‿◕)۶`);
+      }
+      
+      localStorage.setItem('gardenData', JSON.stringify(gardenData));
+      updateGardenStats();
+    }
+
+    function checkLevelUp() {
+      const totalTreeLevels = gardenData.trees.reduce((sum, tree) => sum + (tree ? tree.level : 0), 0);
+      const newGardenLevel = Math.floor(totalTreeLevels / 10) + 1;
+      
+      if (newGardenLevel > gardenData.level) {
+        gardenData.level = newGardenLevel;
+        localStorage.setItem('gardenData', JSON.stringify(gardenData));
+        showAchievement('🎉', 'もりレベルアップ！', `レベル ${newGardenLevel} のもりになったよ〜♪`);
+        renderGarden(); 
+      }
+    }
+
+    function showAchievement(emoji, title, message) {
+      // 移除现有的成就弹窗
+      const existingPopup = document.querySelector('.achievement-popup');
+      if (existingPopup) {
+        existingPopup.remove();
+      }
+      
+      const popup = document.createElement('div');
+      popup.className = 'achievement-popup';
+      popup.innerHTML = `
+        <span class="emoji">${emoji}</span>
+        <h3>${title}</h3>
+        <p>${message}</p>
+      `;
+      
+      document.body.appendChild(popup);      <section id="stats" class="section">
+        <div class="stats-container">
+          <h2 style="margin-bottom: 24px; color: #374151; font-weight: 700;">📈 とうけいグラフ♪ ☆(ゝω・)vキャピ</h2>
+          <div class="chart-container">
+            <canvas id="barChart" height="200"></canvas>
+          </div>
+          <div class="chart-container">
+            <canvas id="pieChart" height="200"></canvas>
+          </div>
+        </div>
+      </section>  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script>
+    let records = JSON.parse(localStorage.getItem('poopRecords') || '[]');
+    let timerInterval = null;
+    let startTime = null;
+    let timerSession = null;
+    let currentMode = 'manual';
+
+    function switchMode(mode) {
+      currentMode = mode;
+      
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      if (mode === 'manual') {
+        document.getElementById('manual-mode').style.display = 'block';
+        document.getElementById('timer-mode').style.display = 'none';
+      } else {
+        document.getElementById('manual-mode').style.display = 'none';
+        document.getElementById('timer-mode').style.display = 'block';
+      }
+    }
+
+    function startTimer() {
+      startTime = new Date();
+      const startBtn = document.getElementById('start-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      const status = document.getElementById('timer-status');
+      
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      
+      status.textContent = '🚽 トイレタイム計測中〜♪ がんばって！ (ﾉ´∀｀*)';
+      status.className = 'timer-status timing';
+      
+      timerInterval = setInterval(updateTimer, 1000);
+      updateTimer(); 
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      
+      const endTime = new Date();
+      const duration = Math.floor((endTime - startTime) / 1000);
+      
+      const startBtn = document.getElementById('start-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      const status = document.getElementById('timer-status');
+      
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      
+      status.textContent = `🎉 おつかれさま〜！ ${formatDuration(duration)} かかったよ♪`;
+      status.className = 'timer-status finished';
+      
+      timerSession = {
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        duration: duration
+      };
+      
+      setTimeout(() => {
+        switchToManualModeWithTimer();
+      }, 1500);
+    }
+
+    function updateTimer() {
+      if (!startTime) return;
+      
+      const now = new Date();
+      const elapsed = Math.floor((now - startTime) / 1000);
+      document.getElementById('timer-display').textContent = formatDuration(elapsed);
+    }
+
+    function formatDuration(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function switchToManualModeWithTimer() {
+      document.querySelector('.mode-btn[onclick="switchMode(\'manual\')"]').classList.add('active');
+      document.querySelector('.mode-btn[onclick="switchMode(\'timer\')"]').classList.remove('active');
+      document.getElementById('manual-mode').style.display = 'block';
+      document.getElementById('timer-mode').style.display = 'none';
+      currentMode = 'manual';
+      
+      if (timerSession && timerSession.startTime) {
+        const startDate = new Date(timerSession.startTime);
+        const tzOffset = startDate.getTimezoneOffset() * 60000;
+        const localTime = new Date(startDate.getTime() - tzOffset);
+        document.getElementById('time').value = localTime.toISOString().slice(0, 16);
+      }
+      
+      showTimerInfo();
+    }
+
+    function showTimerInfo() {
+      if (!timerSession) return;
+      
+      let timerInfo = document.getElementById('timer-info-display');
+      if (!timerInfo) {
+        timerInfo = document.createElement('div');
+        timerInfo.id = 'timer-info-display';
+        timerInfo.className = 'timer-info';
+        
+        const form = document.getElementById('poopForm');
+        form.insertBefore(timerInfo, form.firstChild);
+      }
+      
+      const startTime = new Date(timerSession.startTime);
+      const endTime = new Date(timerSession.endTime);
+      
+      timerInfo.innerHTML = `
+        <div style="text-align: center; margin-bottom: 12px;">
+          ⏱️ <strong>タイマー<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -139,20 +598,21 @@
 
     .card-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 16px;
     }
 
     .card-choice {
       background: white;
       border: 2px solid #e5e7eb;
       border-radius: 20px;
-      padding: 20px 12px;
+      padding: 16px 12px;
       text-align: center;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
+      min-height: 80px;
     }
 
     .card-choice:hover {
@@ -284,7 +744,118 @@
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
-    @media (max-width: 640px) {
+    .timer-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .timer-display {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #6366f1;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      text-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+    }
+
+    .timer-status {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .timer-status.waiting {
+      color: #64748b;
+    }
+
+    .timer-status.timing {
+      color: #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    .timer-status.finished {
+      color: #f59e0b;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .timer-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 20px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0 8px;
+    }
+
+    .timer-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
+    }
+
+    .timer-btn.stop {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .timer-btn.stop:hover {
+      box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4);
+    }
+
+    .timer-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .record-mode-toggle {
+      display: flex;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      padding: 8px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .mode-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #64748b;
+    }
+
+    .mode-btn.active {
+      background: #6366f1;
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+    }
+
+    .timer-info {
+      background: #f0f9ff;
+      border: 2px solid #bae6fd;
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 20px;
+      color: #0369a1;
+      font-size: 0.9rem;
+    }
       .container {
         padding: 16px;
       }
@@ -308,7 +879,7 @@
   <div class="container">
     <header class="header">
       <h1>💩 うんちダイアリー</h1>
-      <p>きょうも元気にうんち記録だよ〜♪ (´∀｀)♡</p>
+      <p>きょうも元気にうんち記録だよ〜</p>
     </header>
 
     <div class="nav-container">
@@ -320,6 +891,10 @@
         <button class="nav-btn" onclick="showSection('history')">
           <i class="fas fa-history"></i>
           れきし〜
+        </button>
+        <button class="nav-btn" onclick="showSection('garden')">
+          <i class="fas fa-seedling"></i>
+          もりもり♪
         </button>
         <button class="nav-btn" onclick="showSection('stats')">
           <i class="fas fa-chart-bar"></i>
@@ -334,15 +909,44 @@
 
     <main>
       <section id="record" class="section active">
-        <div class="form-container">
+        <div class="record-mode-toggle">
+          <button class="mode-btn active" onclick="switchMode('manual')">
+            ✏️ てがきモード
+          </button>
+          <button class="mode-btn" onclick="switchMode('timer')">
+            ⏱️ タイマーモード
+          </button>
+        </div>
+
+        <!-- 计时器模式 -->
+        <div id="timer-mode" class="timer-container" style="display: none;">
+          <div class="timer-status waiting" id="timer-status">
+            🚽 トイレタイム〜 準備はいい？
+          </div>
+          <div class="timer-display" id="timer-display">00:00</div>
+          <div>
+            <button class="timer-btn" id="start-btn" onclick="startTimer()">
+              ▶️ スタート！
+            </button>
+            <button class="timer-btn stop" id="stop-btn" onclick="stopTimer()" disabled>
+              ⏹️ ストップ
+            </button>
+          </div>
+          <div class="timer-info">
+            💡 スタートを押してトイレタイムを計測しよう〜！<br>
+            終わったらストップを押して詳細を記録してね ♡(˃͈ દ ˂͈ ༶ )
+          </div>
+        </div>
+
+        <div id="manual-mode" class="form-container">
           <form id="poopForm">
             <div class="form-group">
-              <label class="form-label">📅 ひづけと時間だよ〜 (´∀｀)</label>
+              <label class="form-label">📅 ひづけと時間だよ〜</label>
               <input type="datetime-local" id="time" class="datetime-input" required>
             </div>
 
             <div class="form-group">
-              <label class="form-label">💩 うんちちゃんの調子はどう？ ♪(´▽｀)</label>
+              <label class="form-label">💩 うんちちゃんの調子はどう？</label>
               <div class="card-grid" data-field="condition">
                 <div class="card-choice" data-value="げんき">
                   <span class="emoji">😊</span>
@@ -507,7 +1111,57 @@
         </div>
       </section>
 
-      <section id="stats" class="section">
+      <section id="garden" class="section">
+        <div class="garden-container">
+          <div class="clouds">
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
+          </div>
+          
+          <div class="garden-header">
+            <h2 style="margin-bottom: 8px; color: #2d5016; font-weight: 700;">🌳 うんちもりもり〜♪</h2>
+            <p style="color: #4a5d23;">うんちするたびにきが育つよ〜！ ٩(◕‿◕)۶</p>
+          </div>
+
+          <div class="garden-stats">
+            <div class="stat-card">
+              <span class="stat-number" id="total-trees">0</span>
+              <div class="stat-label">きのかず🌲</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number" id="total-records">0</span>
+              <div class="stat-label">きろく回数💩</div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number" id="garden-level">1</span>
+              <div class="stat-label">もりレベル⭐</div>
+            </div>
+          </div>
+
+          <div class="garden-area" id="garden-area">
+          </div>
+
+          <div class="garden-ground"></div>
+
+          <div class="fertilizer-section">
+            <div style="margin-bottom: 12px;">
+              <span style="font-size: 1.2rem; font-weight: 600; color: #8B4513;">
+                💩 うんちひりょう
+              </span>
+            </div>
+            <div class="fertilizer-count" id="fertilizer-count">0</div>
+            <div style="font-size: 0.9rem; color: #65748b; margin-bottom: 16px;">
+              うんちひりょうで木をそだてよう♪
+            </div>
+            <button class="fertilizer-btn" onclick="useFertilizer()" id="fertilize-btn" disabled>
+              🌱 ひりょうをあげる
+            </button>
+            <button class="fertilizer-btn" onclick="plantNewTree()" id="plant-btn" disabled>
+              🌰 あたらしい木をうえる
+            </button>
+          </div>
+        </div>
+      </section>
         <div class="stats-container">
           <h2 style="margin-bottom: 24px; color: #374151; font-weight: 700;">📈 とうけいグラフ♪ ☆(ゝω・)vキャピ</h2>
           <div class="chart-container">
@@ -536,77 +1190,60 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <script>
-    // 全局变量
     let records = JSON.parse(localStorage.getItem('poopRecords') || '[]');
 
-    // 导航功能
     function showSection(sectionId) {
-      // 隐藏所有section
       document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
       });
       
-      // 显示目标section
       document.getElementById(sectionId).classList.add('active');
       
-      // 更新导航按钮状态
       document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
       });
       event.target.classList.add('active');
 
-      // 如果是统计页面，渲染图表
       if (sectionId === 'stats') {
         renderCharts();
       }
 
-      // 如果是历史页面，渲染记录
       if (sectionId === 'history') {
         renderHistory();
       }
     }
 
-    // 卡片选择功能
     document.addEventListener('DOMContentLoaded', function() {
-      // 为所有卡片添加点击事件
       document.querySelectorAll('.card-choice').forEach(card => {
         card.addEventListener('click', function() {
-          // 获取所属的字段组
           const fieldGroup = this.closest('[data-field]');
           if (fieldGroup) {
-            // 清除同组其他卡片的选中状态
             fieldGroup.querySelectorAll('.card-choice').forEach(c => {
               c.classList.remove('selected');
             });
-            // 选中当前卡片
             this.classList.add('selected');
           }
         });
       });
 
-      // 设置默认时间为当前时间
       const now = new Date();
       const timeInput = document.getElementById('time');
       const tzOffset = now.getTimezoneOffset() * 60000;
       const localTime = new Date(now.getTime() - tzOffset);
       timeInput.value = localTime.toISOString().slice(0, 16);
 
-      // 表单提交处理
       document.getElementById('poopForm').addEventListener('submit', function(e) {
         e.preventDefault();
         saveRecord();
       });
 
-      // 初始化页面
       renderHistory();
     });
 
-    // 保存记录
     function saveRecord() {
       const time = document.getElementById('time').value;
       const memo = document.getElementById('memo').value;
 
-      // 收集所有选择的值
       const formData = { time, memo };
       
       document.querySelectorAll('[data-field]').forEach(fieldGroup => {
@@ -615,13 +1252,11 @@
         formData[fieldName] = selectedCard ? selectedCard.getAttribute('data-value') : '';
       });
 
-      // 验证必填字段
       if (!time) {
         alert('ひづけと時間をえらんでね〜 (´･ω･`)');
         return;
       }
 
-      // 保存到localStorage
       const record = {
         id: Date.now(),
         ...formData,
@@ -631,28 +1266,23 @@
       records.unshift(record);
       localStorage.setItem('poopRecords', JSON.stringify(records));
 
-      // 显示成功消息
       alert('きろくできたよ〜♪ おつかれさま！ ヾ(＾∇＾) 🎉');
 
-      // 重置表单
       resetForm();
     }
 
-    // 重置表单
     function resetForm() {
       document.querySelectorAll('.card-choice.selected').forEach(card => {
         card.classList.remove('selected');
       });
       document.getElementById('memo').value = '';
       
-      // 重置时间为当前时间
       const now = new Date();
       const tzOffset = now.getTimezoneOffset() * 60000;
       const localTime = new Date(now.getTime() - tzOffset);
       document.getElementById('time').value = localTime.toISOString().slice(0, 16);
     }
 
-    // 渲染历史记录
     function renderHistory() {
       const recordList = document.getElementById('recordList');
       
@@ -687,7 +1317,6 @@
       `).join('');
     }
 
-    // 格式化日期
     function formatDate(dateString) {
       const date = new Date(dateString);
       return date.toLocaleString('zh-CN', {
@@ -699,7 +1328,6 @@
       });
     }
 
-    // 导出CSV
     function exportCSV() {
       if (records.length === 0) {
         alert('まだデータがないよ〜 (´･ω･`) きろくしてからまた来てね♪');
@@ -728,13 +1356,10 @@
       link.click();
     }
 
-    // 渲染图表 (简化版本)
     function renderCharts() {
-      // 这里可以添加Chart.js图表渲染逻辑
       console.log('グラフをかいてるよ〜♪', records);
     }
 
-    // 保存提醒设置
     function saveReminder() {
       const reminderTime = document.getElementById('reminderTime').value;
       if (reminderTime) {
@@ -743,7 +1368,6 @@
       }
     }
 
-    // 加载设置
     document.addEventListener('DOMContentLoaded', function() {
       const savedReminderTime = localStorage.getItem('reminderTime');
       if (savedReminderTime) {
