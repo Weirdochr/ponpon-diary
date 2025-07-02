@@ -1,26 +1,61 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ぽんぽんダイアリー</title>
-  <!-- 这里假设你已有 Bootstrap 或类似框架的引入，如需可自行添加 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css?family=Kosugi+Maru&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-..."
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
   <style>
-    /* 基础重置 */
-    * { box-sizing: border-box; }
-    body { background: #fff0f5; font-family: 'Kosugi Maru', sans-serif; margin: 0; padding: 0; }
-    .container { padding-top: 1rem; }
-
-    /* 按钮统一风格 */
-    .btn { border-radius: 1rem !important; transition: transform 0.2s ease, box-shadow 0.2s ease !important; }
-    .btn:hover { transform: translateY(-2px) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; }
-    .nav-btn { margin: 0 0.25rem; }
-    .nav-btn.active { background-color: #FF6B9D !important; color: #fff !important; }
-
-    /* 卡片式选择控件 */
-    .form-select { display: none; }
-    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px,1fr)); gap: 0.5rem; margin-bottom: 1rem; }
+    :root {
+      --primary-pink: #FF6B9D;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background: #fff0f5;
+      font-family: 'Kosugi Maru', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      padding-top: 1rem;
+    }
+    .btn {
+      border-radius: 1rem !important;
+      transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+    .btn:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    }
+    .nav-btn {
+      margin: 0 0.25rem;
+    }
+    .nav-btn.active {
+      background-color: var(--primary-pink) !important;
+      color: #fff !important;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
     .card-choice {
       background: #fff;
       border: 2px solid #e5e7eb;
@@ -30,35 +65,59 @@
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .card-choice .emoji { font-size: 1.5rem; display: block; margin-bottom: 0.25rem; }
-    .card-choice .text { font-size: 0.75rem; }
-    .card-choice:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+    .card-choice .emoji {
+      font-size: 1.5rem;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    .card-choice .text {
+      font-size: 0.75rem;
+    }
+    .card-choice:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
     .card-choice.selected {
       background: linear-gradient(135deg, #FF6B9D, #8b5cf6);
       border-color: #FF6B9D;
       color: #fff;
       transform: scale(1.05);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
-
-    /* 森林动画 */
     #forestDisplay {
       font-size: 2.5rem;
       line-height: 1.4;
       animation: forestGrow 0.8s ease-in-out, forestBounce 2s infinite 1s;
     }
     @keyframes forestGrow {
-      from { opacity: 0; transform: scale(0.8); }
-      to { opacity: 1; transform: scale(1); }
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
     @keyframes forestBounce {
-      0%,100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
+      0%,
+      100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
     }
-
-    /* 历史记录样式 */
-    .history-card-container { background: #fff; border-radius: 1rem; padding: 1rem; }
-    .history-list { list-style: none; padding: 0; margin: 0; }
+    .history-card-container {
+      background: #fff;
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+    .history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
     .history-item {
       display: flex;
       align-items: center;
@@ -66,38 +125,55 @@
       border-bottom: 1px solid #e5e7eb;
       padding: 0.75rem 0;
     }
-    .history-item:last-child { border-bottom: none; }
-    .history-item .info { display: flex; align-items: center; gap: 1rem; }
-    .history-item .info .date { font-size: 0.75rem; color: #6b7280; }
-    .history-item .info .feeling { font-size: 1.25rem; }
-    .history-item .memo { font-size: 0.75rem; color: #374151; }
-
-    /* 响应式调整 */
+    .history-item:last-child {
+      border-bottom: none;
+    }
+    .history-item .info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .history-item .info .date {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+    .history-item .info .feeling {
+      font-size: 1.25rem;
+    }
+    .history-item .memo {
+      font-size: 0.75rem;
+      color: #374151;
+    }
     @media (max-width: 576px) {
-      .card-choice { padding: 0.5rem; }
-      .card-choice .emoji { font-size: 1.25rem; }
-      .card-choice .text { font-size: 0.65rem; }
-      .history-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .card-choice {
+        padding: 0.5rem;
+      }
+      .card-choice .emoji {
+        font-size: 1.25rem;
+      }
+      .card-choice .text {
+        font-size: 0.65rem;
+      }
+      .history-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-
-    <!-- 记录页面 -->
-    <section id="log" class="section">
-      <div class="card p-4 mb-4">
+    <section id="log" class="mb-4">
+      <div class="card p-4">
         <h5 style="color: var(--primary-pink); margin-bottom: 1.5rem;">
           <i class="fas fa-pencil-alt"></i> 日々の記録
         </h5>
         <form id="poopForm">
-          <!-- 日期选择 -->
           <div class="mb-3">
             <label class="form-label">📅 日付</label>
-            <input type="date" class="form-control" id="date" required>
+            <input type="date" class="form-control" id="date" required />
           </div>
-
-          <!-- 排便感选择 -->
           <div class="mb-3">
             <label class="form-label">🌀 排便感</label>
             <div class="card-grid" data-field="feeling">
@@ -115,29 +191,27 @@
               </div>
             </div>
           </div>
-
-          <!-- 备注 -->
           <div class="mb-3">
             <label class="form-label">📝 メモ</label>
-            <textarea class="form-control" id="memo" rows="2" placeholder="食事、サプリ、ストレスなど"></textarea>
+            <textarea
+              class="form-control"
+              id="memo"
+              rows="2"
+              placeholder="食事、サプリ、ストレスなど"
+            ></textarea>
           </div>
-
-          <!-- 提交按钮 -->
           <button class="btn btn-primary btn-block" type="submit">
             <i class="fas fa-save"></i> 🌟 記録する
           </button>
         </form>
       </div>
     </section>
-
-    <!-- 历史记录页面 -->
-    <section id="history" class="section">
-      <div class="history-card-container mb-4">
+    <section id="history">
+      <div class="history-card-container">
         <h5 style="color: var(--primary-pink); margin-bottom: 1.5rem;">
           <i class="fas fa-history"></i> 記録履歴
         </h5>
         <ul class="history-list">
-          <!-- 示例条目，可由 JS 动态生成 -->
           <li class="history-item">
             <div class="info">
               <div class="date">2025-07-01 08:00</div>
@@ -152,22 +226,20 @@
             </div>
             <div class="memo">夕食が重かった</div>
           </li>
-          <!-- 更多历史记录... -->
         </ul>
       </div>
     </section>
-
   </div>
-
-  <!-- FontAwesome 和交互脚本（示例） -->
-  <script src="https://kit.fontawesome.com/your-kit.js" crossorigin="anonymous"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+  ></script>
   <script>
-    // 简单示例：点击卡片选中效果
-    document.querySelectorAll('.card-choice').forEach(el => {
+    document.querySelectorAll('.card-choice').forEach((el) => {
       el.addEventListener('click', () => {
-        document.querySelectorAll('.card-choice').forEach(c => c.classList.remove('selected'));
+        document
+          .querySelectorAll('.card-choice')
+          .forEach((c) => c.classList.remove('selected'));
         el.classList.add('selected');
-        // 可将 data-value 存入一个隐藏 input 以便提交
       });
     });
   </script>
